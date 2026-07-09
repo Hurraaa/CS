@@ -92,6 +92,7 @@
   #btnReload { right: 6vw; bottom: 40vh; width: 13vw; max-width: 74px; height: 13vw; max-height: 74px; font-size: 2.6vw; }
   #btnJump { right: 24vw; bottom: 33vh; width: 13vw; max-width: 74px; height: 13vw; max-height: 74px; font-size: 2.6vw; }
   #btnCrouch { right: 5vw; bottom: 6vh; width: 12vw; max-width: 68px; height: 12vw; max-height: 68px; font-size: 2.4vw; }
+  #btnSwap { right: 20vw; bottom: 5vh; width: 15vw; max-width: 82px; height: 9vw; max-height: 50px; border-radius: 10px; font-size: 2.6vw; font-weight: 800; letter-spacing: 1px; }
   .mbtn .ic { font-size: 1.6em; line-height: 1; }
 
   #rotateHint { position: absolute; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; text-align: center; background: #06080b; color: #e7ecef; font-size: 18px; letter-spacing: 1px; padding: 30px; }
@@ -176,6 +177,7 @@
   <div class="mbtn" id="btnReload"><span class="ic">⟳</span></div>
   <div class="mbtn" id="btnJump"><span class="ic">⤒</span></div>
   <div class="mbtn" id="btnCrouch"><span class="ic">⤓</span></div>
+  <div class="mbtn" id="btnSwap">AWP</div>
 </div>
 <div id="rotateHint">📱↻<br />Telefonu yatay çevir</div>
 
@@ -187,8 +189,9 @@
     <div class="keys" id="keysDesktop">
       <b>W A S D</b><span>Hareket</span>
       <b>Fare</b><span>Bak</span>
-      <b>Sol Tık</b><span>Ateş (AWP)</span>
-      <b>Sağ Tık</b><span>Scope / Zoom</span>
+      <b>Sol Tık</b><span>Ateş (basılı tut = sprey)</span>
+      <b>Sağ Tık</b><span>Nişan / Scope</span>
+      <b>1 / 2 / Q</b><span>Silah değiştir (AK / AWP)</span>
       <b>R</b><span>Şarjör değiştir</span>
       <b>Shift</b><span>Yürü (sessiz)</span>
       <b>Space</b><span>Zıpla</span>
@@ -198,8 +201,9 @@
     <div class="keys" id="keysMobile">
       <b>◐ Sol</b><span>Hareket joystick</span>
       <b>Sağ sürükle</b><span>Bak / nişan al</span>
-      <b>🎯</b><span>Ateş</span>
-      <b>🔍</b><span>Scope / Zoom</span>
+      <b>🎯</b><span>Ateş (basılı tut = sprey)</span>
+      <b>🔍</b><span>Nişan / Scope</span>
+      <b>AK/AWP</b><span>Silah değiştir butonu</span>
       <b>⟳</b><span>Şarjör · ⤒ Zıpla · ⤓ Çömel</span>
     </div>
     <div class="hint">Telefonu <b>yatay</b> tut · Başlamak için OYNA'ya dokun</div>
