@@ -75,6 +75,14 @@
   #killfeed .row.t { border-left-color: #ff7a5c; }
   @keyframes fadeIn { from { opacity: 0; transform: translateX(12px);} to {opacity:1; transform:none;} }
 
+  /* Round banner */
+  #roundBanner { position: absolute; left: 50%; top: 30%; transform: translate(-50%,-50%) scale(.9); text-align: center; opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; }
+  #roundBanner.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+  #roundBanner .big { font-size: 42px; font-weight: 900; letter-spacing: 2px; text-shadow: 0 2px 12px rgba(0,0,0,.8); }
+  #roundBanner .big.ct { color: #6db3ff; }
+  #roundBanner .big.t { color: #ff7a5c; }
+  #roundBanner .small { margin-top: 8px; font-size: 13px; letter-spacing: 3px; opacity: .7; }
+
   /* Damage flash */
   #dmgflash { position: absolute; inset: 0; box-shadow: inset 0 0 160px 40px rgba(180,0,0,0); transition: box-shadow .12s; pointer-events: none; }
   #hurtdir { position: absolute; inset: 0; pointer-events: none; }
@@ -157,7 +165,7 @@
 
   <div id="scorebar">
     <div><span class="ct" id="scoreCT">0</span><span class="sub">TAKIM</span></div>
-    <div><span class="vs">5v5</span></div>
+    <div><span class="vs">5v5</span><span class="sub" id="rounds">0 - 0</span></div>
     <div><span class="t" id="scoreT">0</span><span class="sub">DÜŞMAN</span></div>
     <div class="kdcell"><span class="kd" id="kd">0 / 0</span><span class="sub">SEN K/D</span></div>
   </div>
@@ -173,6 +181,11 @@
   </div>
 
   <div id="dmgflash"></div>
+
+  <div id="roundBanner">
+    <div class="big" id="roundBannerText"></div>
+    <div class="small">yeni round başlıyor…</div>
+  </div>
 </div>
 
 <div id="mobileUI">

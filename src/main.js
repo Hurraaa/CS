@@ -637,7 +637,7 @@ const raycaster = new THREE.Raycaster();
 const hitmarkerEl = document.getElementById('hitmarker');
 
 function fireOnce() {
-  if (!player.alive) return;
+  if (!player.alive || roundOver) return;
   const w = curW(), a = curAmmo();
   if (a.reloading) return;
   if (time - a.lastShot < w.fireDelay) return;
@@ -787,6 +787,7 @@ function enemiesOf(bot) {
 }
 
 function botShootAt(bot, target) {
+  if (roundOver) return;
   ensureAudio();
   const from = bot.head.getWorldPosition(new THREE.Vector3());
   const tPos = eyeOf(target);
@@ -838,8 +839,28 @@ function refillAmmo() {
 
 // ---------- HUD updates ----------
 const stats = { kills: 0, deaths: 0 };          // player's personal K/D
-const teamScore = { ct: 0, t: 0 };              // total kills per team
+const teamScore = { ct: 0, t: 0 };              // kills this round, per team
+const ROUND_LIMIT = 20;                         // first team to this many kills wins the round
+const roundsWon = { ct: 0, t: 0 };
+let roundOver = false, roundResetAt = 0;
 const el = id => document.getElementById(id);
+
+function startRoundEnd(winner) {
+  roundOver = true; roundResetAt = time + 3.5;
+  roundsWon[winner]++;
+  el('rounds').textContent = roundsWon.ct + ' - ' + roundsWon.t;
+  const txt = el('roundBannerText');
+  txt.textContent = winner === 'ct' ? "TAKIMIN ROUND'U ALDI 🏆" : "DÜŞMAN ROUND'U ALDI";
+  txt.className = 'big ' + winner;
+  el('roundBanner').classList.add('show');
+}
+function resetRound() {
+  roundOver = false;
+  teamScore.ct = 0; teamScore.t = 0;
+  el('roundBanner').classList.remove('show');
+  for (const b of bots) spawnBot(b);
+  respawnPlayer(); refillAmmo(); updateHealth(); updateScore();
+}
 function updateHealth() {
   const h = Math.max(0, Math.round(player.hp));
   el('health').textContent = h;
@@ -854,6 +875,10 @@ function updateScore() {
   el('scoreCT').textContent = teamScore.ct;
   el('scoreT').textContent = teamScore.t;
   el('kd').textContent = stats.kills + ' / ' + stats.deaths;
+  if (!roundOver) {
+    if (teamScore.ct >= ROUND_LIMIT) startRoundEnd('ct');
+    else if (teamScore.t >= ROUND_LIMIT) startRoundEnd('t');
+  }
 }
 const killfeedEl = el('killfeed');
 // killerSide: 'player' | 'ct' | 't' — colors the feed row's edge
@@ -892,6 +917,7 @@ const clock = new THREE.Clock();
 
 function update(dt) {
   time += dt;
+  if (roundOver && time >= roundResetAt) resetRound();
 
   // ----- Player movement -----
   if (player.alive) {
@@ -1140,6 +1166,8 @@ window.__switch = switchWeapon;
 window.__hold = (on) => { firing = !!on; };
 window.__advance = (n) => { for (let i = 0; i < n; i++) update(1 / 60); };   // pure loop steps (no injected fire/reload)
 window.__reload = () => startReload();
+window.__forceScore = (ct, t) => { teamScore.ct = ct; teamScore.t = t; updateScore(); };
+window.__roundInfo = () => ({ roundOver, rounds: el('rounds').textContent, ct: teamScore.ct, t: teamScore.t });
 window.__teleport = (x, z, yw, pt) => { player.pos.set(x, 0, z); yaw = yw || 0; pitch = pt || 0; camera.rotation.set(pitch, yaw, 0); };
 window.__botInfo = () => bots.map(b => ({ team: b.team, name: b.name, alive: b.alive, x: +b.pos.x.toFixed(1), z: +b.pos.z.toFixed(1) }));
 window.__setScope = setAim;

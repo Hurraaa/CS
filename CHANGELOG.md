@@ -2,6 +2,11 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.3.0
+- **Round sistemi:** 20 kill'e ulaşan takım round'u kazanır — ekran ortasında takım renkli banner,
+  3.5 sn sonra skorlar sıfırlanır, herkes yeniden doğar. Skorbarda round sayacı (🏆 1 - 0). Round
+  bittiğinde ateş kilitlenir (oyuncu + botlar).
+
 ## v1.2.0
 - **5v5 takım deathmatch:** Sen + 4 müttefik bot (CT, mavi) vs 5 düşman bot (T, kırmızı). Takımlar kendi
   yarı sahasında doğar (CT güney / T kuzey); botlar **birbiriyle de çatışır** (hedef seçimi ~5Hz: en yakın
