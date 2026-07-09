@@ -2,6 +2,10 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.3.2
+- **Radar:** sol üstte bakış yönüne dönen CS tarzı radar. Müttefikler hep görünür (mavi); düşmanlar
+  yalnız görüş hattına girince ~1.6 sn 'spotted' kalır (kırmızı). Ortada yeşil oyuncu oku.
+
 ## v1.3.1
 - **Skor tablosu:** Tab basılı tut (mobilde skorbara dokun) → tüm 10 oyuncunun K/D tablosu, takım
   renkleriyle, kill sayısına göre sıralı; sen yeşil vurgulu. Botlar artık kendi K/D'sini takip ediyor.

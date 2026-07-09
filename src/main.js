@@ -884,6 +884,42 @@ function updateScore() {
     else if (teamScore.t >= ROUND_LIMIT) startRoundEnd('t');
   }
 }
+// ---------- Radar (rotates with the view; enemies show only when spotted) ----------
+const radarCv = el('radar'), radarCtx = radarCv.getContext('2d');
+const RADAR_RANGE = 45;
+let radarNextDraw = 0;
+function drawRadar() {
+  const S = radarCv.width, C = S / 2, scale = (C - 8) / RADAR_RANGE;
+  const ctx = radarCtx;
+  ctx.clearRect(0, 0, S, S);
+  // dial
+  ctx.save();
+  ctx.beginPath(); ctx.arc(C, C, C - 2, 0, Math.PI * 2); ctx.clip();
+  ctx.fillStyle = 'rgba(8,12,16,.72)'; ctx.fillRect(0, 0, S, S);
+  ctx.strokeStyle = 'rgba(255,255,255,.1)';
+  ctx.beginPath(); ctx.moveTo(C, 4); ctx.lineTo(C, S - 4); ctx.moveTo(4, C); ctx.lineTo(S - 4, C); ctx.stroke();
+  ctx.beginPath(); ctx.arc(C, C, (C - 8) / 2, 0, Math.PI * 2); ctx.stroke();
+  const cy = Math.cos(yaw), sy = Math.sin(yaw);
+  const eye = controls.getObject().position;
+  for (const b of bots) {
+    if (!b.alive) continue;
+    if (b.team === 't' && time > (b.spottedUntil || 0)) continue;   // unspotted enemies hidden
+    const dx = b.pos.x - player.pos.x, dz = b.pos.z - player.pos.z;
+    const rx = dx * cy - dz * sy;                 // camera-space right
+    const rf = -dx * sy - dz * cy;                // camera-space forward
+    const px = C + rx * scale, py = C - rf * scale;
+    if ((px - C) ** 2 + (py - C) ** 2 > (C - 6) ** 2) continue;     // outside dial
+    ctx.fillStyle = b.team === 'ct' ? '#6db3ff' : '#ff5c3c';
+    ctx.beginPath(); ctx.arc(px, py, 3.2, 0, Math.PI * 2); ctx.fill();
+  }
+  // player arrow (always center, pointing up = view direction)
+  ctx.fillStyle = '#3dff8b';
+  ctx.beginPath(); ctx.moveTo(C, C - 6); ctx.lineTo(C - 4.5, C + 5); ctx.lineTo(C + 4.5, C + 5); ctx.closePath(); ctx.fill();
+  ctx.restore();
+  ctx.strokeStyle = 'rgba(255,255,255,.22)';
+  ctx.beginPath(); ctx.arc(C, C, C - 2, 0, Math.PI * 2); ctx.stroke();
+}
+
 // ---------- Scoreboard (hold Tab / tap the scorebar) ----------
 let sbVisible = false, sbRefreshAt = 0;
 function renderScoreboard() {
@@ -1028,6 +1064,21 @@ function update(dt) {
 
   // live-refresh the scoreboard while it's open
   if (sbVisible && time >= sbRefreshAt) { renderScoreboard(); sbRefreshAt = time + 0.5; }
+
+  // radar: spot enemies (LOS from player eye, ~5Hz staggered) and redraw ~15Hz
+  if (time >= radarNextDraw) {
+    radarNextDraw = time + 0.066;
+    const eye = co.position;
+    for (const b of bots) {
+      if (b.team !== 't' || !b.alive) continue;
+      if (time > (b.nextSpotCheck || 0)) {
+        b.nextSpotCheck = time + 0.2 + Math.random() * 0.1;
+        const hp2 = b.head.getWorldPosition(new THREE.Vector3());
+        if (losClear(eye, hp2, 60)) b.spottedUntil = time + 1.6;
+      }
+    }
+    drawRadar();
+  }
 
   // ----- Bots (5v5: both teams think, move, fight each other) -----
   for (const bot of bots) {

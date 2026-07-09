@@ -75,6 +75,10 @@
   #killfeed .row.t { border-left-color: #ff7a5c; }
   @keyframes fadeIn { from { opacity: 0; transform: translateX(12px);} to {opacity:1; transform:none;} }
 
+  /* Radar */
+  #radar { position: absolute; left: 14px; top: 14px; width: 132px; height: 132px; opacity: .92; }
+  body.mobile #radar { left: 10px; top: 54px; width: 92px; height: 92px; }
+
   /* Scoreboard */
   #scoreboard { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); display: none; }
   #scoreboard.show { display: block; }
@@ -175,6 +179,8 @@
     <div class="ring"></div>
     <div class="lineH"></div><div class="lineV"></div>
   </div>
+
+  <canvas id="radar" width="132" height="132"></canvas>
 
   <div id="scorebar">
     <div><span class="ct" id="scoreCT">0</span><span class="sub">TAKIM</span></div>
