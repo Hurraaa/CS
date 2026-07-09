@@ -221,6 +221,26 @@ function playClick() {
   o.type = 'square'; o.frequency.value = 900; g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
   o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t + 0.05);
 }
+// bright metallic 'tink' on headshot hits
+function playTink() {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type = 'sine'; o.frequency.setValueAtTime(2300, t); o.frequency.exponentialRampToValueAtTime(1600, t + 0.07);
+  g.gain.setValueAtTime(0.16, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
+  o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t + 0.09);
+}
+// short rising two-tone when the player confirms a kill (higher for headshots)
+function playKillConfirm(head) {
+  if (!audioCtx) return;
+  const t = audioCtx.currentTime;
+  [head ? 880 : 660, head ? 1320 : 990].forEach((f, i) => {
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'triangle'; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t + i * 0.07); g.gain.exponentialRampToValueAtTime(0.14, t + i * 0.07 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.07 + 0.12);
+    o.connect(g); g.connect(audioCtx.destination); o.start(t + i * 0.07); o.stop(t + i * 0.07 + 0.13);
+  });
+}
 
 // ---------- Player ----------
 const EYE_STAND = 1.68, EYE_CROUCH = 1.0, RADIUS = 0.38, STEP = 0.65;
@@ -664,7 +684,8 @@ function fireOnce() {
       } else {
         const head = h.object.userData.part === 'head';
         damageBot(bot, head ? w.dmgHead : w.dmgBody, head, 'player');
-        showHitmarker(bot.hp <= 0);
+        showHitmarker(bot.hp <= 0, head);
+        if (head) playTink();
       }
     } else {
       spawnImpact(h.point, h.face ? h.face.normal : null);
@@ -673,8 +694,9 @@ function fireOnce() {
   spawnTracer(raycaster.ray.origin, raycaster.ray.direction, hits.length ? hits[0].distance : 200);
 }
 
-function showHitmarker(kill) {
+function showHitmarker(kill, head) {
   hitmarkerEl.classList.toggle('kill', kill);
+  hitmarkerEl.classList.toggle('head', !!head && !kill);
   hitmarkerEl.style.opacity = '1';
   clearTimeout(hitmarkerEl._t);
   hitmarkerEl._t = setTimeout(() => hitmarkerEl.style.opacity = '0', kill ? 260 : 130);
@@ -731,10 +753,10 @@ function damageBot(bot, dmg, head, killer) {
   if (!bot.alive) return;
   bot.hp -= dmg;
   spawnBlood((head ? bot.head : bot.torso).getWorldPosition(new THREE.Vector3()));
-  if (bot.hp <= 0) { killBot(bot, killer); }
+  if (bot.hp <= 0) { killBot(bot, killer, head); }
   else updateBotHealthbar(bot);
 }
-function killBot(bot, killer) {
+function killBot(bot, killer, headshot) {
   bot.alive = false; bot.dying = true; bot.deathStart = time;
   bot.fallDir = Math.random() < 0.5 ? 1 : -1;
   bot.respawnAt = time + 3.2;
@@ -743,8 +765,9 @@ function killBot(bot, killer) {
   else if (killer && killer.team) { killer.kills++; teamScore[killer.team]++; }
   updateScore();
   addKillFeed(killer === 'player' ? 'Sen' : (killer ? killer.name : '?'), bot.name,
-    killer === 'player' ? 'player' : (killer ? killer.team : 't'));
+    killer === 'player' ? 'player' : (killer ? killer.team : 't'), headshot);
   ensureAudio();
+  if (killer === 'player') playKillConfirm(headshot);
 }
 function updateBotHealthbar(bot) {
   const ctx = bot.hbCtx, W = 96, H = 22;
@@ -954,11 +977,11 @@ el('scorebar').addEventListener('click', () => setScoreboard(!sbVisible));
 el('scorebar').addEventListener('touchstart', e => { e.preventDefault(); setScoreboard(!sbVisible); }, { passive: false });
 
 const killfeedEl = el('killfeed');
-// killerSide: 'player' | 'ct' | 't' — colors the feed row's edge
-function addKillFeed(killer, victim, killerSide) {
+// killerSide: 'player' | 'ct' | 't' — colors the feed row's edge; 💀 marks headshots
+function addKillFeed(killer, victim, killerSide, headshot) {
   const row = document.createElement('div');
   row.className = 'row ' + (killerSide === 'player' ? 'me' : killerSide);
-  row.innerHTML = `<b>${killer}</b> ⟶ ${victim} <span style="opacity:.6">🎯</span>`;
+  row.innerHTML = `<b>${killer}</b> ⟶ ${victim} <span style="opacity:.75">${headshot ? '💀' : '🎯'}</span>`;
   killfeedEl.prepend(row);
   setTimeout(() => { row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }, 3400);
   while (killfeedEl.children.length > 6) killfeedEl.lastChild.remove();

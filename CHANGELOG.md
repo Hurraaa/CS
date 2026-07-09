@@ -2,6 +2,10 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.3.4
+- **Headshot geri bildirimi:** kafadan vuruşta sarı hitmarker + metalik 'tink' sesi; kill feed'de 💀
+  ikonu. **Kill onay sesi:** sen öldürünce iki tonlu kısa jingle (headshot'ta daha tiz).
+
 ## v1.3.3
 - **Hasar yön göstergesi:** vurulunca ekran ortasında, saldırganın yönünü gösteren kırmızı kavis belirir
   (bakışa göre döner, 0.9 sn'de solar). **Düşük can vinyeti:** can ≤30 iken kalp atışı gibi nabızlanan
