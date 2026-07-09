@@ -193,11 +193,17 @@ function ramp(x, z, rot) {
 ramp(-20, -14, false);
 ramp(22, 16, true);
 
+// ---------- Settings (persisted) ----------
+const settings = {
+  sens: Math.max(0.3, Math.min(2, parseFloat(localStorage.getItem('awp.sens')) || 1)),
+  sound: localStorage.getItem('awp.sound') !== '0',
+};
+
 // ---------- Audio (WebAudio synth) ----------
 let audioCtx = null;
 function ensureAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
 function playShot(big = true, vol = 0.5) {
-  if (!audioCtx) return;
+  if (!audioCtx || !settings.sound) return;
   const t = audioCtx.currentTime;
   // noise burst
   const dur = big ? 0.28 : 0.12;
@@ -216,14 +222,14 @@ function playShot(big = true, vol = 0.5) {
   }
 }
 function playClick() {
-  if (!audioCtx) return;
+  if (!audioCtx || !settings.sound) return;
   const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
   o.type = 'square'; o.frequency.value = 900; g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
   o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t + 0.05);
 }
 // bright metallic 'tink' on headshot hits
 function playTink() {
-  if (!audioCtx) return;
+  if (!audioCtx || !settings.sound) return;
   const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
   o.type = 'sine'; o.frequency.setValueAtTime(2300, t); o.frequency.exponentialRampToValueAtTime(1600, t + 0.07);
   g.gain.setValueAtTime(0.16, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.09);
@@ -231,7 +237,7 @@ function playTink() {
 }
 // short rising two-tone when the player confirms a kill (higher for headshots)
 function playKillConfirm(head) {
-  if (!audioCtx) return;
+  if (!audioCtx || !settings.sound) return;
   const t = audioCtx.currentTime;
   [head ? 880 : 660, head ? 1320 : 990].forEach((f, i) => {
     const o = audioCtx.createOscillator(), g = audioCtx.createGain();
@@ -526,7 +532,7 @@ renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
 let lookId = null, lookX = 0, lookY = 0;
 const PITCH_LIMIT = Math.PI / 2 - 0.02;
 function applyLook(dx, dy) {
-  const sens = scoped ? (curW().scope ? 0.0016 : 0.0028) : 0.0042;
+  const sens = (scoped ? (curW().scope ? 0.0016 : 0.0028) : 0.0042) * settings.sens;
   yaw -= dx * sens;
   pitch -= dy * sens;
   pitch = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, pitch));
@@ -635,7 +641,7 @@ function setAim(on) {
   document.getElementById('crosshair').classList.toggle('hidden', on);
   document.getElementById('dot').style.display = useScope ? 'none' : 'block';
   viewGroup.visible = !useScope;
-  controls.pointerSpeed = on ? (curW().scope ? 0.35 : 0.62) : 1.0;
+  controls.pointerSpeed = (on ? (curW().scope ? 0.35 : 0.62) : 1.0) * settings.sens;
 }
 
 function updateWeaponName() {
@@ -985,6 +991,24 @@ function addKillFeed(killer, victim, killerSide, headshot) {
   killfeedEl.prepend(row);
   setTimeout(() => { row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }, 3400);
   while (killfeedEl.children.length > 6) killfeedEl.lastChild.remove();
+}
+
+// ---------- Settings UI ----------
+controls.pointerSpeed = settings.sens;
+{
+  const slider = el('sensSlider'), val = el('sensVal'), chk = el('soundChk');
+  slider.value = settings.sens; val.textContent = settings.sens.toFixed(2);
+  chk.checked = settings.sound;
+  slider.addEventListener('input', () => {
+    settings.sens = parseFloat(slider.value);
+    val.textContent = settings.sens.toFixed(2);
+    localStorage.setItem('awp.sens', String(settings.sens));
+    if (!scoped) controls.pointerSpeed = settings.sens;
+  });
+  chk.addEventListener('change', () => {
+    settings.sound = chk.checked;
+    localStorage.setItem('awp.sound', settings.sound ? '1' : '0');
+  });
 }
 
 // ---------- Menu / pointer lock ----------

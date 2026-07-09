@@ -150,6 +150,11 @@
   .keys { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 13px; text-align: left; margin-top: 6px; opacity: .82; }
   .keys b { color: #3dff8b; font-family: monospace; font-weight: 700; }
   #menu .hint { font-size: 11px; opacity: .4; margin-top: 16px; letter-spacing: 1px; }
+  .settings { margin-top: 14px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,.08); display: flex; flex-direction: column; gap: 8px; text-align: left; }
+  .settings .srow { display: flex; align-items: center; gap: 10px; font-size: 13px; opacity: .85; pointer-events: auto; }
+  .settings input[type="range"] { flex: 1; accent-color: #3dff8b; }
+  .settings input[type="checkbox"] { accent-color: #3dff8b; width: 16px; height: 16px; }
+  .settings #sensVal { font-family: monospace; opacity: .7; min-width: 34px; }
   #loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; letter-spacing: 3px; opacity: .7; }
   #keysMobile { display: none; }
   body.mobile #keysDesktop { display: none; }
@@ -262,6 +267,13 @@
       <b>🔍</b><span>Scope / zoom (AWP)</span>
       <b>AK/AWP</b><span>Silah değiştir butonu</span>
       <b>⟳</b><span>Şarjör · ⤒ Zıpla · ⤓ Çömel</span>
+    </div>
+    <div class="settings">
+      <label class="srow">Hassasiyet
+        <input type="range" id="sensSlider" min="0.3" max="2" step="0.05" value="1" />
+        <span id="sensVal">1.00</span>
+      </label>
+      <label class="srow chk"><input type="checkbox" id="soundChk" checked /> Ses açık</label>
     </div>
     <div class="hint">Telefonu <b>yatay</b> tut · Başlamak için OYNA'ya dokun</div>
   </div>
