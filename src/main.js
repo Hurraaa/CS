@@ -319,15 +319,9 @@ viewGroup.add(akModel);
 
 viewGroup.traverse(m => { if (m.isMesh) m.castShadow = false; });
 
-// muzzle flash sprite (shared; repositioned per weapon)
-const flashMat = new THREE.SpriteMaterial({ color: 0xffdd88, transparent: true, opacity: 0, depthTest: false });
-const flash = new THREE.Sprite(flashMat); flash.scale.set(0.5, 0.5, 0.5); flash.position.set(0, 0.05, -1.15);
-viewGroup.add(flash);
-
 function updateViewmodel() {
   awpModel.visible = curKey === 'awp';
   akModel.visible = curKey === 'ak';
-  flash.position.z = curKey === 'awp' ? -1.45 : -1.15;
 }
 updateViewmodel();
 
@@ -608,8 +602,7 @@ function fireOnce() {
   if (a.mag <= 0) { startReload(); return; }
   a.lastShot = time; a.mag--; updateAmmo();
   ensureAudio(); playShot(w.sndBig, w.sndVol);
-  // muzzle flash + viewmodel kick + aim recoil
-  flashMat.opacity = 1; flash.scale.setScalar((w.scope ? 0.5 : 0.35) + Math.random() * 0.25);
+  // viewmodel kick + aim recoil
   viewGroup.position.z = -0.42 + w.kick * 0.7;
   recPitch += w.recoilUp;
   recYaw += (Math.random() * 2 - 1) * w.recoilSide;
@@ -649,8 +642,9 @@ function startReload() {
 }
 function finishReload() {
   const w = curW(), a = curAmmo();
-  const take = Math.min(w.magMax - a.mag, a.reserve);
-  a.mag += take; a.reserve -= take; a.reloading = false;
+  // Infinite reserve: endless deathmatch, so reloads always top the mag and the
+  // reserve never depletes (shown as ∞ in the HUD).
+  a.mag = w.magMax; a.reserve = w.reserveMax; a.reloading = false;
   document.getElementById('ammo').classList.remove('reloading');
   updateAmmo(); playClick();
 }
@@ -753,7 +747,17 @@ function playerDie() {
   stats.deaths++; updateScore();
   addKillFeed('BOT', 'Sen', false);
   setAim(false);
-  setTimeout(() => { if (!player.alive) respawnPlayer(); updateHealth(); }, 1400);
+  setTimeout(() => { if (!player.alive) { respawnPlayer(); refillAmmo(); } updateHealth(); }, 1400);
+}
+
+// Top every weapon's mag/reserve and clear any reload — called on respawn.
+function refillAmmo() {
+  for (const k in ammoState) {
+    const a = ammoState[k];
+    a.mag = WEAPONS[k].magMax; a.reserve = WEAPONS[k].reserveMax; a.reloading = false;
+  }
+  document.getElementById('ammo').classList.remove('reloading');
+  updateAmmo();
 }
 
 // ---------- HUD updates ----------
@@ -767,7 +771,7 @@ function updateHealth() {
 function updateAmmo() {
   const a = curAmmo();
   el('mag').textContent = a.mag;
-  el('reserve').textContent = a.reserve;
+  el('reserve').textContent = '∞';   // infinite reserve
 }
 function updateScore() {
   el('kills').textContent = stats.kills;
@@ -888,7 +892,6 @@ function update(dt) {
   viewGroup.position.z += (-0.42 - viewGroup.position.z) * Math.min(1, dt * 10);
   const bob = player.onGround && (Math.abs(player.vel.x) + Math.abs(player.vel.z)) > 1 ? Math.sin(time * 10) * 0.012 : 0;
   viewGroup.position.y = -0.2 + bob;
-  flashMat.opacity *= (1 - Math.min(1, dt * 18));
 
   // reload finish (per active weapon)
   if (curAmmo().reloading && time >= curAmmo().reloadEnd) finishReload();
@@ -1002,6 +1005,7 @@ window.__diag = () => ({ bots: bots.length, aliveBots: bots.filter(b => b.alive)
 window.__switch = switchWeapon;
 window.__hold = (on) => { firing = !!on; };
 window.__advance = (n) => { for (let i = 0; i < n; i++) update(1 / 60); };   // pure loop steps (no injected fire/reload)
+window.__reload = () => startReload();
 window.__setScope = setAim;
 window.__yawProbe = () => yaw;
 window.__moveProbe = () => ({ x: moveVec.x, y: moveVec.y, mag: joyMag });
