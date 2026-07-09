@@ -9,6 +9,10 @@ Sağ tık ile AWP scope:
 
 ![Scope](preview-scope.png)
 
+📱 Telefonda dokunmatik kontrollerle de oynanır:
+
+![Mobil](preview-mobile.png)
+
 ## 🎮 Nasıl Oynanır
 
 | Tuş | İşlev |
@@ -25,6 +29,21 @@ Sağ tık ile AWP scope:
 
 Ekrandaki **OYNA** butonuna tıkla — fare kilidi devreye girer. Kafadan vuruş anında öldürür,
 gövde vuruşu çok yüksek hasar verir. En yüksek K/D skorunu yakala.
+
+### 📱 Telefonda (dokunmatik)
+
+Telefonda otomatik olarak dokunmatik kontroller ve tam ekran devreye girer:
+
+| Kontrol | İşlev |
+|---------|-------|
+| **Sol joystick** | Hareket (analog — az it = yürü, çok it = koş) |
+| **Sağ tarafta sürükle** | Bak / nişan al |
+| 🎯 | Ateş |
+| 🔍 | Scope / zoom (aç-kapa) |
+| ⟳ | Şarjör değiştir |
+| ⤒ | Zıpla · ⤓ Çömel |
+
+> En iyi deneyim için telefonu **yatay** tut. Dikey tutarsan uyarı çıkar.
 
 ## ⚙️ Özellikler
 
