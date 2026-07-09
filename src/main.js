@@ -236,6 +236,32 @@ function playClick() {
   o.type = 'square'; o.frequency.value = 900; g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
   o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t + 0.05);
 }
+// soft footstep thud (alternating pitch)
+let stepFlip = false;
+function playStep(run) {
+  if (!audioCtx || !settings.sound) return;
+  const t = audioCtx.currentTime, dur = 0.07;
+  const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * dur, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3);
+  const src = audioCtx.createBufferSource(); src.buffer = buf;
+  const f = audioCtx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = (stepFlip = !stepFlip) ? 420 : 360;
+  const g = audioCtx.createGain(); g.gain.value = run ? 0.11 : 0.07;
+  src.connect(f); f.connect(g); g.connect(audioCtx.destination); src.start(t);
+}
+// near-miss bullet whiz (quick noise sweep past the ear)
+function playWhiz() {
+  if (!audioCtx || !settings.sound) return;
+  const t = audioCtx.currentTime, dur = 0.16;
+  const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * dur, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1);
+  const src = audioCtx.createBufferSource(); src.buffer = buf;
+  const f = audioCtx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 9;
+  f.frequency.setValueAtTime(3200, t); f.frequency.exponentialRampToValueAtTime(900, t + dur);
+  const g = audioCtx.createGain(); g.gain.setValueAtTime(0.09, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  src.connect(f); f.connect(g); g.connect(audioCtx.destination); src.start(t);
+}
 // bright metallic 'tink' on headshot hits
 function playTink() {
   if (!audioCtx || !settings.sound) return;
@@ -844,6 +870,7 @@ function botShootAt(bot, target) {
   if (target === 'player') {
     const hitChance = Math.min(0.9, Math.max(0.14, Math.min(0.72, 0.8 - dist * 0.008)) * diff().acc);
     if (Math.random() < hitChance) damagePlayer((14 + Math.random() * 16) * diff().dmg, from, bot);
+    else if (dist < 40 && Math.random() < 0.55) playWhiz();   // near miss whistles past
   } else {
     // bot-vs-bot: slightly less lethal so firefights are watchable and winnable
     const hitChance = Math.max(0.1, Math.min(0.5, 0.6 - dist * 0.008));
@@ -1158,6 +1185,17 @@ function update(dt) {
 
   // live-refresh the scoreboard while it's open
   if (sbVisible && time >= sbRefreshAt) { renderScoreboard(); sbRefreshAt = time + 0.5; }
+
+  // footsteps: cadence follows speed; silent when crouch-walking slowly
+  {
+    const hSpeed = Math.hypot(player.vel.x, player.vel.z);
+    if (player.alive && player.onGround && hSpeed > 2.8) {
+      if (time >= (player.nextStep || 0)) {
+        playStep(hSpeed > 5.5);
+        player.nextStep = time + (hSpeed > 5.5 ? 0.32 : 0.46);
+      }
+    }
+  }
 
   // crosshair spread mirrors recoil + movement inaccuracy
   {

@@ -2,14 +2,18 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
-## v1.3.7
-- **Bot zorluğu:** menüde Kolay/Orta/Zor seçimi (localStorage kalıcı). Yalnız sana karşı isabet,
-  hasar ve atış temposunu ölçekler — bot-vs-bot dengesi bozulmaz.
+## v1.3.9
+- **Ses cilası:** koşarken/yürürken tempolu ayak sesleri (hıza göre kadans, değişen perde);
+  seni ıskalayan yakın mermilerde kulak dibinden 'vızz' geçiş sesi. CHANGELOG sıralaması düzeltildi.
 
 ## v1.3.8
 - **Müttefik komutu:** F (mobilde TAKİP butonu) ile 'takip et / serbest dolaş' arasında geçiş.
   Takipte müttefikler etrafında formasyon tutar ve yakın koruma yapar (25m içindeki düşmanla savaşır,
   uzaktakini bırakıp sana döner). Ekranda kısa bilgi toast'u.
+
+## v1.3.7
+- **Bot zorluğu:** menüde Kolay/Orta/Zor seçimi (localStorage kalıcı). Yalnız sana karşı isabet,
+  hasar ve atış temposunu ölçekler — bot-vs-bot dengesi bozulmaz.
 
 ## v1.3.6
 - **Ayarlar menüsü:** hassasiyet slider'ı (0.3–2.0, fare + dokunmatik bakışa uygulanır) ve ses aç/kapa.
