@@ -2,6 +2,10 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.3.10
+- **Ölüm ekranı:** ölünce kırmızı vinyetli 'ÖLDÜN' + seni öldüren botun adı; respawn'da kaybolur.
+- **Spawn koruması:** yeniden doğduktan sonra 2 sn hasar alınmaz (toast ile bildirilir).
+
 ## v1.3.9
 - **Ses cilası:** koşarken/yürürken tempolu ayak sesleri (hıza göre kadans, değişen perde);
   seni ıskalayan yakın mermilerde kulak dibinden 'vızz' geçiş sesi. CHANGELOG sıralaması düzeltildi.

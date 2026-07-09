@@ -882,6 +882,7 @@ function botShootAt(bot, target) {
 const dmgflash = document.getElementById('dmgflash');
 function damagePlayer(dmg, fromPos, attacker) {
   if (!player.alive) return;
+  if (time < (player.protectUntil || 0)) return;   // brief spawn protection
   player.hp -= dmg;
   dmgflash.style.boxShadow = 'inset 0 0 160px 50px rgba(180,0,0,.55)';
   clearTimeout(dmgflash._t); dmgflash._t = setTimeout(() => dmgflash.style.boxShadow = 'inset 0 0 160px 40px rgba(180,0,0,0)', 120);
@@ -903,9 +904,20 @@ function playerDie(attacker) {
   stats.deaths++; teamScore.t++;
   if (attacker && attacker.team) attacker.kills++;
   updateScore();
-  addKillFeed(attacker && attacker.name ? attacker.name : 'BOT', 'Sen', 't');
+  const kn = attacker && attacker.name ? attacker.name : 'BOT';
+  addKillFeed(kn, 'Sen', 't');
+  el('deathBy').textContent = kn + ' seni öldürdü';
+  el('deathOverlay').classList.add('show');
   setAim(false);
-  setTimeout(() => { if (!player.alive) { respawnPlayer(); refillAmmo(); } updateHealth(); }, 1400);
+  setTimeout(() => {
+    if (!player.alive) {
+      respawnPlayer(); refillAmmo();
+      player.protectUntil = time + 2;             // 2s of spawn protection
+      showToast('🛡 Spawn koruması (2 sn)');
+    }
+    el('deathOverlay').classList.remove('show');
+    updateHealth();
+  }, 1600);
 }
 
 // Top every weapon's mag/reserve and clear any reload — called on respawn.
@@ -1403,6 +1415,7 @@ window.__hold = (on) => { firing = !!on; };
 window.__advance = (n) => { for (let i = 0; i < n; i++) update(1 / 60); };   // pure loop steps (no injected fire/reload)
 window.__reload = () => startReload();
 window.__forceScore = (ct, t) => { teamScore.ct = ct; teamScore.t = t; updateScore(); };
+window.__hurt = (dmg) => damagePlayer(dmg, new THREE.Vector3(0, 1.5, -10), bots.find(b => b.team === 't'));
 window.__roundInfo = () => ({ roundOver, rounds: el('rounds').textContent, ct: teamScore.ct, t: teamScore.t });
 window.__teleport = (x, z, yw, pt) => { player.pos.set(x, 0, z); yaw = yw || 0; pitch = pt || 0; camera.rotation.set(pitch, yaw, 0); };
 window.__botInfo = () => bots.map(b => ({ team: b.team, name: b.name, alive: b.alive, x: +b.pos.x.toFixed(1), z: +b.pos.z.toFixed(1) }));

@@ -96,6 +96,13 @@
   #scoreboard tr.me td:first-child { color: #3dff8b; }
   #scorebar { pointer-events: auto; cursor: pointer; }
 
+  /* Death overlay */
+  #deathOverlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: radial-gradient(circle at center, rgba(60,0,0,.35), rgba(15,0,0,.72)); opacity: 0; pointer-events: none; transition: opacity .3s; }
+  #deathOverlay.show { opacity: 1; }
+  #deathOverlay .dead-big { font-size: 52px; font-weight: 900; letter-spacing: 8px; color: #ff5c4d; text-shadow: 0 2px 16px rgba(0,0,0,.9); }
+  #deathOverlay .dead-sub { font-size: 16px; opacity: .85; }
+  #deathOverlay .dead-hint { font-size: 12px; letter-spacing: 3px; opacity: .5; margin-top: 6px; }
+
   /* Round banner */
   #roundBanner { position: absolute; left: 50%; top: 30%; transform: translate(-50%,-50%) scale(.9); text-align: center; opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; }
   #roundBanner.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
@@ -228,6 +235,12 @@
   <div id="roundBanner">
     <div class="big" id="roundBannerText"></div>
     <div class="small">yeni round başlıyor…</div>
+  </div>
+
+  <div id="deathOverlay">
+    <div class="dead-big">ÖLDÜN</div>
+    <div class="dead-sub" id="deathBy"></div>
+    <div class="dead-hint">yeniden doğuyorsun…</div>
   </div>
 
   <div id="scoreboard">
