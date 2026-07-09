@@ -386,6 +386,7 @@ function makeBot(team, name) {
   const bot = {
     team, name, group: g, head, torso, torsoG, legs: [legL, legR], arms: [armL, armR],
     hp: 100, alive: true, respawnAt: 0,
+    kills: 0, deaths: 0,
     dying: false, deathStart: 0, fallDir: 1,
     pos: new THREE.Vector3(), vel: new THREE.Vector3(),
     target: new THREE.Vector3(),                   // patrol destination
@@ -737,8 +738,9 @@ function killBot(bot, killer) {
   bot.alive = false; bot.dying = true; bot.deathStart = time;
   bot.fallDir = Math.random() < 0.5 ? 1 : -1;
   bot.respawnAt = time + 3.2;
+  bot.deaths++;
   if (killer === 'player') { stats.kills++; teamScore.ct++; }
-  else if (killer && killer.team) teamScore[killer.team]++;
+  else if (killer && killer.team) { killer.kills++; teamScore[killer.team]++; }
   updateScore();
   addKillFeed(killer === 'player' ? 'Sen' : (killer ? killer.name : '?'), bot.name,
     killer === 'player' ? 'player' : (killer ? killer.team : 't'));
@@ -821,7 +823,9 @@ function damagePlayer(dmg, fromPos, attacker) {
 }
 function playerDie(attacker) {
   player.alive = false;
-  stats.deaths++; teamScore.t++; updateScore();
+  stats.deaths++; teamScore.t++;
+  if (attacker && attacker.team) attacker.kills++;
+  updateScore();
   addKillFeed(attacker && attacker.name ? attacker.name : 'BOT', 'Sen', 't');
   setAim(false);
   setTimeout(() => { if (!player.alive) { respawnPlayer(); refillAmmo(); } updateHealth(); }, 1400);
@@ -880,6 +884,28 @@ function updateScore() {
     else if (teamScore.t >= ROUND_LIMIT) startRoundEnd('t');
   }
 }
+// ---------- Scoreboard (hold Tab / tap the scorebar) ----------
+let sbVisible = false, sbRefreshAt = 0;
+function renderScoreboard() {
+  const rows = (team) => {
+    const list = bots.filter(b => b.team === team).map(b => ({ name: b.name, k: b.kills, d: b.deaths, me: false }));
+    if (team === 'ct') list.push({ name: 'Sen', k: stats.kills, d: stats.deaths, me: true });
+    list.sort((a, b) => b.k - a.k);
+    return list.map(r => `<tr class="${r.me ? 'me' : ''}"><td>${r.name}</td><td>${r.k}</td><td>${r.d}</td></tr>`).join('');
+  };
+  el('sbCT').innerHTML = `<tr><th>TAKIM</th><th>K</th><th>D</th></tr>` + rows('ct');
+  el('sbT').innerHTML = `<tr><th>DÜŞMAN</th><th>K</th><th>D</th></tr>` + rows('t');
+}
+function setScoreboard(on) {
+  sbVisible = on;
+  el('scoreboard').classList.toggle('show', on);
+  if (on) { renderScoreboard(); sbRefreshAt = time + 0.5; }
+}
+addEventListener('keydown', e => { if (e.code === 'Tab') { e.preventDefault(); if (!sbVisible) setScoreboard(true); } });
+addEventListener('keyup', e => { if (e.code === 'Tab') setScoreboard(false); });
+el('scorebar').addEventListener('click', () => setScoreboard(!sbVisible));
+el('scorebar').addEventListener('touchstart', e => { e.preventDefault(); setScoreboard(!sbVisible); }, { passive: false });
+
 const killfeedEl = el('killfeed');
 // killerSide: 'player' | 'ct' | 't' — colors the feed row's edge
 function addKillFeed(killer, victim, killerSide) {
@@ -999,6 +1025,9 @@ function update(dt) {
 
   // reload finish (per active weapon)
   if (curAmmo().reloading && time >= curAmmo().reloadEnd) finishReload();
+
+  // live-refresh the scoreboard while it's open
+  if (sbVisible && time >= sbRefreshAt) { renderScoreboard(); sbRefreshAt = time + 0.5; }
 
   // ----- Bots (5v5: both teams think, move, fight each other) -----
   for (const bot of bots) {

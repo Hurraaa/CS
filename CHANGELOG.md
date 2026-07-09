@@ -2,6 +2,10 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.3.1
+- **Skor tablosu:** Tab basılı tut (mobilde skorbara dokun) → tüm 10 oyuncunun K/D tablosu, takım
+  renkleriyle, kill sayısına göre sıralı; sen yeşil vurgulu. Botlar artık kendi K/D'sini takip ediyor.
+
 ## v1.3.0
 - **Round sistemi:** 20 kill'e ulaşan takım round'u kazanır — ekran ortasında takım renkli banner,
   3.5 sn sonra skorlar sıfırlanır, herkes yeniden doğar. Skorbarda round sayacı (🏆 1 - 0). Round

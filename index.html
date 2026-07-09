@@ -75,6 +75,19 @@
   #killfeed .row.t { border-left-color: #ff7a5c; }
   @keyframes fadeIn { from { opacity: 0; transform: translateX(12px);} to {opacity:1; transform:none;} }
 
+  /* Scoreboard */
+  #scoreboard { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); display: none; }
+  #scoreboard.show { display: block; }
+  #scoreboard .sb-inner { display: flex; gap: 18px; background: rgba(8,11,15,.88); border: 1px solid rgba(255,255,255,.1); border-radius: 12px; padding: 18px 22px; box-shadow: 0 18px 50px rgba(0,0,0,.6); }
+  #scoreboard table { border-collapse: collapse; min-width: 170px; }
+  #scoreboard th { font-size: 11px; letter-spacing: 2px; opacity: .65; text-align: left; padding: 4px 10px; border-bottom: 1px solid rgba(255,255,255,.15); }
+  #scoreboard td { font-size: 14px; padding: 4px 10px; }
+  #scoreboard #sbCT td:first-child { color: #6db3ff; }
+  #scoreboard #sbT td:first-child { color: #ff7a5c; }
+  #scoreboard tr.me td { font-weight: 800; }
+  #scoreboard tr.me td:first-child { color: #3dff8b; }
+  #scorebar { pointer-events: auto; cursor: pointer; }
+
   /* Round banner */
   #roundBanner { position: absolute; left: 50%; top: 30%; transform: translate(-50%,-50%) scale(.9); text-align: center; opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; }
   #roundBanner.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
@@ -185,6 +198,13 @@
   <div id="roundBanner">
     <div class="big" id="roundBannerText"></div>
     <div class="small">yeni round başlıyor…</div>
+  </div>
+
+  <div id="scoreboard">
+    <div class="sb-inner">
+      <table id="sbCT"></table>
+      <table id="sbT"></table>
+    </div>
   </div>
 </div>
 
