@@ -1,0 +1,16 @@
+{
+  "name": "awp-hangar",
+  "version": "1.0.0",
+  "private": true,
+  "description": "AWP Hangar — Three.js CS-style deathmatch vs bots (iOS-safe classic-script build)",
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "serve": "http-server dist -p 8080 -c-1",
+    "bootgate": "node boot-gate.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.24.0",
+    "three": "0.160.0"
+  }
+}

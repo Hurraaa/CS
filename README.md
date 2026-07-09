@@ -57,29 +57,33 @@ Telefonda otomatik olarak dokunmatik kontroller ve tam ekran devreye girer:
 
 ## 🚀 Çalıştırma
 
-### Yerel
-Herhangi bir statik sunucu yeterli (ES modülleri `file://` üzerinde bazı tarayıcılarda kısıtlı olabilir):
+### Yerel (build gerekir)
 
 ```bash
-npx http-server -p 8080
-# tarayıcıda: http://localhost:8080
+npm install
+npm run build      # dist/ üretir (esbuild → klasik-script/IIFE)
+npm run serve      # dist'i http://localhost:8080 adresinde sunar
 ```
 
+Başsız duman testi: `npm run bootgate` (oyunun gerçekten açıldığını doğrular).
+
 ### GitHub Pages (önerilen — linkten oyna)
-Bu repoda hazır bir GitHub Actions workflow'u var (`.github/workflows/pages.yml`).
-`main` dalına merge edildiğinde site otomatik yayınlanır. Tek seferlik kurulum:
+`.github/workflows/pages.yml` `main` dalına her push'ta **build + boot-gate + deploy** yapar. Tek seferlik kurulum:
 
 1. Repo **Settings → Pages** bölümüne git.
 2. **Build and deployment → Source** kısmını **GitHub Actions** olarak ayarla.
-3. `main` dalına push/merge yap — birkaç dakika içinde
+3. `main` dalına push/merge yap — birkaç dakikada
    `https://<kullanıcı-adın>.github.io/cs/` adresinde yayında olur.
 
 ## 🛠️ Teknik
 
-- **Three.js 0.160** (repoya gömülü — `vendor/` altında, CDN'e bağımlılık yok)
-- Tek dosya: `index.html` (importmap + ES modülleri)
-- Fizik: AABB çarpışma + yerçekimi, adım (step) mantığıyla kasalara tırmanma
-- Bot AI: durum makinesi (patrol / engage) + LOS raycast
+- **Three.js 0.160**, esbuild ile **klasik-script / IIFE** olarak bundle edilir (`dist/game-[hash].js`).
+  CDN yok, importmap yok, inline module yok — **iOS Safari uyumlu** (bkz. `docs/…REHBERI.md` §3).
+- `index.html` bir şablon; `build.mjs` hash'li script yolunu + sürümü enjekte eder.
+- Sağlamlık: no-cache meta, yükleme katmanı, `#fatal` hata katmanı, `build vNN` rozeti.
+- Fizik: AABB çarpışma + yerçekimi, adım (step) mantığıyla kasalara tırmanma.
+- Bot AI: durum makinesi (patrol / engage) + LOS raycast.
+- **Sevkiyat:** `bash ship.sh <sürüm> "mesaj"` — build → boot-gate → commit → push (FAIL ise push yok).
 
 ## 📄 Lisans
 
