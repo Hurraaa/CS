@@ -38,7 +38,10 @@ let joyActive = false, joyMag = 0;
 let mCrouch = false;               // mobile crouch toggle
 camera.rotation.order = 'YXZ';     // matches PointerLockControls; lets us set yaw/pitch directly
 const isActive = () => controls.isLocked || mobileActive;
-if (isTouch) document.body.classList.add('mobile');
+if (isTouch) {
+  document.body.classList.add('mobile');
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));   // phones: cap fill-rate cost
+}
 
 // ---------- Procedural textures ----------
 function canvasTex(w, h, draw, repeat = 1, repeatY) {
@@ -94,7 +97,7 @@ scene.add(new THREE.HemisphereLight(0xbcd2e8, 0x2a2620, 0.95));
 const sun = new THREE.DirectionalLight(0xfff2d6, 1.15);
 sun.position.set(30, 55, 18);
 sun.castShadow = true;
-sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.mapSize.set(isTouch ? 1024 : 2048, isTouch ? 1024 : 2048);   // cheaper shadows on phones
 sun.shadow.camera.near = 1; sun.shadow.camera.far = 160;
 sun.shadow.camera.left = -70; sun.shadow.camera.right = 70;
 sun.shadow.camera.top = 70; sun.shadow.camera.bottom = -70;

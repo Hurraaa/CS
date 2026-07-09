@@ -2,6 +2,10 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.3.11
+- **Mobil performans:** telefonda pixelRatio 1.5 ile sınırlandı, gölge haritası 2048→1024
+  (dolgu maliyeti ciddi düşer, görsel fark minimal). README/CLAUDE.md/PLAN.md güncellendi.
+
 ## v1.3.10
 - **Ölüm ekranı:** ölünce kırmızı vinyetli 'ÖLDÜN' + seni öldüren botun adı; respawn'da kaybolur.
 - **Spawn koruması:** yeniden doğduktan sonra 2 sn hasar alınmaz (toast ile bildirilir).

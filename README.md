@@ -23,6 +23,8 @@ Sağ tık ile AWP scope:
 | **Sağ Tık** | Nişan / scope (basılı tut) |
 | **1 / 2 / Q** | Silah değiştir (AK-47 ↔ AWP) |
 | **R** | Şarjör değiştir |
+| **F** | Müttefik komutu: takip et / serbest |
+| **Tab** | Skor tablosu (basılı tut) |
 | **Shift** | Yürü (yavaş) |
 | **Space** | Zıpla (kasalara çık) |
 | **Ctrl** | Çömel |
@@ -58,8 +60,13 @@ Telefonda otomatik olarak dokunmatik kontroller ve tam ekran devreye girer:
   tüfek, hedefe nişan pozu, yürüme salınımı, devrilerek ölme), isimli can barları (Şahin, Kobra…)
 - **Hangar harita:** konteynerler, kasa yığınları, rampalar, siperler — uzun snipe hatları + saklanma
 - **CS hissi:** prosedürel dokular, gölgeli ışıklandırma, tavan kirişlerinden ışık huzmeleri
-- **HUD:** nişangah, can, cephane, K/D skoru, kill feed
-- **Ses:** WebAudio ile AWP çatlaması ve bot ateşi
+- **Round sistemi:** 20 kill'e ulaşan takım round'u alır; round sayacı ve kazanan banner'ı
+- **HUD:** dinamik nişangah (sprey/hareketle açılır), radar (spotted düşmanlar), takım skorbarı,
+  skor tablosu (Tab), kill feed (isimli, 💀 headshot ikonu), reload barı, hasar yön göstergesi,
+  ölüm ekranı + 2 sn spawn koruması
+- **Ayarlar:** hassasiyet, ses aç/kapa, bot zorluğu (Kolay/Orta/Zor) — hepsi kalıcı (localStorage)
+- **Müttefik komutu:** F ile "beni takip et / serbest dolaş"
+- **Ses:** WebAudio — silah sesleri, ayak sesleri, vızlayan mermi, headshot 'tink', kill onayı
 - **Deathmatch:** sonsuz döngü, respawn
 
 ## 🚀 Çalıştırma
