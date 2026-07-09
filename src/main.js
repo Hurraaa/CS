@@ -520,6 +520,7 @@ addEventListener('keydown', e => {
   if (e.code === 'Digit1') switchWeapon('ak');
   if (e.code === 'Digit2') switchWeapon('awp');
   if (e.code === 'KeyQ') switchWeapon(curKey === 'ak' ? 'awp' : 'ak');
+  if (e.code === 'KeyF') toggleAllyMode();
   if (['ControlLeft','ControlRight'].includes(e.code)) e.preventDefault();
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
@@ -642,6 +643,7 @@ bindBtn('btnReload', () => startReload());
 bindBtn('btnJump', () => { wantJump = true; });
 bindBtn('btnCrouch', (b) => { mCrouch = !mCrouch; b.classList.toggle('on', mCrouch); });
 bindBtn('btnSwap', () => switchWeapon(curKey === 'ak' ? 'awp' : 'ak'));
+bindBtn('btnSquad', () => toggleAllyMode());
 
 function setAim(on) {
   scoped = on;
@@ -933,6 +935,23 @@ function updateScore() {
     else if (teamScore.t >= ROUND_LIMIT) startRoundEnd('t');
   }
 }
+// ---------- Ally squad command (F / mobile button): follow the player or roam free ----------
+let allyMode = 'free';
+// formation slots around the player, one per allied bot
+const FOLLOW_OFFSETS = [[-3, -2], [3, -2], [-1.6, 3], [1.6, 3]];
+function toggleAllyMode() {
+  allyMode = allyMode === 'free' ? 'follow' : 'free';
+  showToast(allyMode === 'follow' ? '🫡 Müttefikler seni takip ediyor' : '🏃 Müttefikler serbest dolaşıyor');
+  const sq = document.getElementById('btnSquad');
+  if (sq) sq.classList.toggle('on', allyMode === 'follow');
+}
+let toastT = null;
+function showToast(txt) {
+  const t = el('toast');
+  t.textContent = txt; t.classList.add('show');
+  clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
 // ---------- Radar (rotates with the view; enemies show only when spotted) ----------
 const radarCv = el('radar'), radarCtx = radarCv.getContext('2d');
 const RADAR_RANGE = 45;
@@ -1196,8 +1215,10 @@ function update(dt) {
         const d = from.distanceTo(tp);
         if (d < bestD && losClear(from, tp)) { best = cand; bestD = d; }
       }
+      // in follow mode allies act as close protection: ignore enemies beyond 25m
+      if (best && bot.team === 'ct' && allyMode === 'follow' && bestD > 25) best = null;
       if (best) { bot.enemy = best; bot.state = 'engage'; bot.lastSeen = time; }
-      else if (bot.state === 'engage' && time - bot.lastSeen > 2.5) { bot.state = 'patrol'; bot.enemy = null; }
+      else if (bot.state === 'engage' && time - bot.lastSeen > (bot.team === 'ct' && allyMode === 'follow' ? 0.4 : 2.5)) { bot.state = 'patrol'; bot.enemy = null; }
     }
     if (bot.enemy && !aliveTarget(bot.enemy)) { bot.enemy = null; if (bot.state === 'engage') bot.state = 'patrol'; }
 
@@ -1230,9 +1251,13 @@ function update(dt) {
         }
       }
     } else {
-      // patrol toward target
+      // patrol: allies in follow mode hold formation around the player, else roam
+      if (bot.team === 'ct' && allyMode === 'follow') {
+        const slot = FOLLOW_OFFSETS[bots.filter(b => b.team === 'ct').indexOf(bot) % FOLLOW_OFFSETS.length];
+        bot.target.set(player.pos.x + slot[0], 0, player.pos.z + slot[1]);
+      }
       const toT = bot.target.clone().sub(bot.pos); toT.y = 0;
-      if (toT.length() < 1.5) pickPatrol(bot);
+      if (toT.length() < 1.5) { if (!(bot.team === 'ct' && allyMode === 'follow')) pickPatrol(bot); }
       else { bot.yaw = Math.atan2(toT.x, toT.z); move.add(toT.normalize()); }
     }
 

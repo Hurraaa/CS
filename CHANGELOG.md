@@ -6,6 +6,11 @@
 - **Bot zorluğu:** menüde Kolay/Orta/Zor seçimi (localStorage kalıcı). Yalnız sana karşı isabet,
   hasar ve atış temposunu ölçekler — bot-vs-bot dengesi bozulmaz.
 
+## v1.3.8
+- **Müttefik komutu:** F (mobilde TAKİP butonu) ile 'takip et / serbest dolaş' arasında geçiş.
+  Takipte müttefikler etrafında formasyon tutar ve yakın koruma yapar (25m içindeki düşmanla savaşır,
+  uzaktakini bırakıp sana döner). Ekranda kısa bilgi toast'u.
+
 ## v1.3.6
 - **Ayarlar menüsü:** hassasiyet slider'ı (0.3–2.0, fare + dokunmatik bakışa uygulanır) ve ses aç/kapa.
   İkisi de localStorage'da kalıcı — sayfa yenilense de korunur.

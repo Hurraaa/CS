@@ -133,6 +133,9 @@
   #btnJump { right: 24vw; bottom: 33vh; width: 13vw; max-width: 74px; height: 13vw; max-height: 74px; font-size: 2.6vw; }
   #btnCrouch { right: 5vw; bottom: 6vh; width: 12vw; max-width: 68px; height: 12vw; max-height: 68px; font-size: 2.4vw; }
   #btnSwap { right: 20vw; bottom: 5vh; width: 15vw; max-width: 82px; height: 9vw; max-height: 50px; border-radius: 10px; font-size: 2.6vw; font-weight: 800; letter-spacing: 1px; }
+  #btnSquad { right: 38vw; bottom: 5vh; width: 14vw; max-width: 76px; height: 9vw; max-height: 50px; border-radius: 10px; font-size: 2.4vw; font-weight: 800; letter-spacing: 1px; }
+  #toast { position: fixed; left: 50%; bottom: 18vh; transform: translateX(-50%) translateY(8px); background: rgba(10,14,18,.85); border: 1px solid rgba(255,255,255,.14); padding: 9px 20px; border-radius: 8px; font-size: 14px; opacity: 0; transition: opacity .2s, transform .2s; pointer-events: none; z-index: 60; }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   .mbtn .ic { font-size: 1.6em; line-height: 1; }
 
   #rotateHint { position: absolute; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; text-align: center; background: #06080b; color: #e7ecef; font-size: 18px; letter-spacing: 1px; padding: 30px; }
@@ -243,7 +246,9 @@
   <div class="mbtn" id="btnJump"><span class="ic">⤒</span></div>
   <div class="mbtn" id="btnCrouch"><span class="ic">⤓</span></div>
   <div class="mbtn" id="btnSwap">AWP</div>
+  <div class="mbtn" id="btnSquad">TAKİP</div>
 </div>
+<div id="toast"></div>
 <div id="rotateHint">📱↻<br />Telefonu yatay çevir</div>
 
 <div id="menu">
