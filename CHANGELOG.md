@@ -2,6 +2,22 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.2.0
+- **5v5 takım deathmatch:** Sen + 4 müttefik bot (CT, mavi) vs 5 düşman bot (T, kırmızı). Takımlar kendi
+  yarı sahasında doğar (CT güney / T kuzey); botlar **birbiriyle de çatışır** (hedef seçimi ~5Hz: en yakın
+  LOS'lu düşman — T botları için oyuncu da hedef). Dost ateşi kapalı (müttefik mermiyi bloklar, hasar almaz).
+- **Eklemli bot rig'i:** kalça/omuz pivotlu uzuvlar (`limb` — pivot üstte), gövde grubu hedefe göre yukarı/
+  aşağı nişan eğilir (`aimPitch`), kollar önde **elde tüfek** (gövde+dipçik+namlu+şarjör), kask + yelek.
+  Yürüyüşte bacak salınımı hıza göre ölçülenir (`moveAmt`), kollarda karşı-salınım.
+- **Ölüm animasyonu:** bot ayak pivotundan devrilir (rastgele yön + hafif dönüş), ~1.1 sn sonra kaybolur,
+  3.2 sn'de kendi bölgesinde yeniden doğar.
+- **İsim + takım rengi:** her botun tepesinde renkli isim etiketi (mavi/turuncu) + can barı (96px canvas).
+  İsimler: CT Şahin/Kartal/Doğan/Atmaca · T Kobra/Çakal/Akrep/Engerek/Pars.
+- **Takım HUD'u:** skor çubuğu artık TAKIM (mavi) | 5v5 | DÜŞMAN (turuncu) | SEN K/D. Kill feed satırı
+  öldürenin rengiyle kenarlanır (sen=yeşil, müttefik=mavi, düşman=turuncu) ve gerçek isimler yazar.
+- Bot sesleri artık oyuncuya uzaklığa göre kısılır (uzak çatışmalar hafif duyulur); botlar birbirine
+  girmesin diye yumuşak ayrışma kuvveti eklendi.
+
 ## v1.1.2
 - **Sınırsız yedek cephane:** sonsuz deathmatch'e uygun olarak yedek cephane tükenmez (HUD'da `∞`).
   Reload her zaman şarjörü doldurur; respawn'da tüm silahların şarjörü + yedeği dolar (`refillAmmo`).

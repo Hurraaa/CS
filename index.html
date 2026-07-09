@@ -60,15 +60,19 @@
 
   /* Top: score */
   #scorebar { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 26px; align-items: center; background: rgba(10,14,18,.55); padding: 8px 22px; border-radius: 8px; border: 1px solid rgba(255,255,255,.06); text-shadow: 0 1px 2px #000; }
-  #scorebar .k { color: #3dff8b; font-weight: 800; font-size: 22px; }
-  #scorebar .d { color: #ff6b6b; font-weight: 800; font-size: 22px; }
+  #scorebar .ct { color: #6db3ff; font-weight: 800; font-size: 22px; }
+  #scorebar .t { color: #ff7a5c; font-weight: 800; font-size: 22px; }
+  #scorebar .vs { opacity: .45; font-size: 13px; letter-spacing: 1px; font-weight: 700; }
+  #scorebar .kd { color: #3dff8b; font-weight: 700; font-size: 15px; }
+  #scorebar .kdcell { border-left: 1px solid rgba(255,255,255,.12); padding-left: 20px; }
   #scorebar .sub { font-size: 10px; letter-spacing: 2px; opacity: .55; display: block; text-align: center; }
-  #scorebar .enemies { opacity: .8; font-size: 16px; }
 
   /* Kill feed */
   #killfeed { position: absolute; top: 70px; right: 26px; display: flex; flex-direction: column; gap: 6px; align-items: flex-end; }
   #killfeed .row { background: rgba(10,14,18,.6); padding: 5px 12px; border-radius: 5px; font-size: 13px; border-left: 3px solid #3dff8b; text-shadow: 0 1px 2px #000; animation: fadeIn .15s; }
-  #killfeed .row.dead { border-left-color: #ff4d4d; }
+  #killfeed .row.me { border-left-color: #3dff8b; }
+  #killfeed .row.ct { border-left-color: #6db3ff; }
+  #killfeed .row.t { border-left-color: #ff7a5c; }
   @keyframes fadeIn { from { opacity: 0; transform: translateX(12px);} to {opacity:1; transform:none;} }
 
   /* Damage flash */
@@ -152,9 +156,10 @@
   </div>
 
   <div id="scorebar">
-    <div><span class="k" id="kills">0</span><span class="sub">KILLS</span></div>
-    <div><span class="d" id="deaths">0</span><span class="sub">DEATHS</span></div>
-    <div><span class="enemies" id="enemies">5</span><span class="sub">ENEMIES</span></div>
+    <div><span class="ct" id="scoreCT">0</span><span class="sub">TAKIM</span></div>
+    <div><span class="vs">5v5</span></div>
+    <div><span class="t" id="scoreT">0</span><span class="sub">DÜŞMAN</span></div>
+    <div class="kdcell"><span class="kd" id="kd">0 / 0</span><span class="sub">SEN K/D</span></div>
   </div>
   <div id="killfeed"></div>
 
@@ -184,7 +189,7 @@
 <div id="menu">
   <div class="card">
     <h1><span class="awp">AWP</span> HANGAR</h1>
-    <div class="tag">CS-STYLE DEATHMATCH · BOTS</div>
+    <div class="tag">5v5 TAKIM DEATHMATCH · CS TARZI</div>
     <button class="play" id="playBtn">OYNA ▸</button>
     <div class="keys" id="keysDesktop">
       <b>W A S D</b><span>Hareket</span>

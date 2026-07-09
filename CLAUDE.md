@@ -11,9 +11,10 @@ Yalnız **kalıcı kural + sabit mimari + dosya haritası + DOKUNMA listesi**. C
 Derin dersler: `docs/CLAUDE_THREEJS_MOBIL_OYUN_REHBERI.md` (gerekince aç).
 
 ## 🎯 Güncel durum
-v1.1.0 — Oynanır. İki silah: **AK-47** (auto, sprey) ana + **AWP** (bolt, scope) yedek; 1/2/Q + mobil buton
-ile değiştir. 5 bot (LOS AI), hangar harita, HUD, ses, deathmatch. Mobil dokunmatik + tam ekran.
-iOS-güvenli klasik-script/IIFE build (esbuild) + GitHub Pages (Actions) deploy.
+v1.2.0 — Oynanır. **5v5 takım deathmatch:** sen + 4 müttefik (CT mavi) vs 5 düşman (T kırmızı); botlar
+birbiriyle de savaşır, dost ateşi kapalı. İki silah: **AK-47** (auto, sprey) ana + **AWP** (bolt, scope)
+yedek; 1/2/Q + mobil buton. Eklemli bot rig'i (elde tüfek, nişan pozu, yürüme/ölüm animasyonu, isimli can
+barı). Mobil dokunmatik + tam ekran. iOS-güvenli IIFE build (esbuild) + GitHub Pages (Actions) deploy.
 
 ## 🏗️ Mimari (BUNU BOZMA — iOS Safari beyaz-ekran riski)
 - **Build:** `src/main.js` (+ three) → esbuild **IIFE / klasik script** → `dist/game-[hash].js`.
@@ -37,7 +38,10 @@ CI (`.github/workflows/pages.yml`): `main`e push → build + bootgate + Pages de
   - silah: `WEAPONS`/`ammoState`/`curKey`, `fireOnce` (silaha göre hasar/spread/recoil), `switchWeapon`,
     `setAim` (scope=AWP overlay / ADS=AK zoom), `startReload`/`finishReload`, `awpModel`/`akModel`/`updateViewmodel`
   - recoil: `recPitch`/`recYaw` sprey birikimi (update'te bakışa katmanlı, auto-recover); `firing` tetik durumu
-  - botlar: `makeBot`, `spawnBot`, `botCanSee` (LOS raycast), `botShoot`, `damageBot`/`killBot`
+  - botlar (5v5): `TEAM` (renk+isim), `makeBot`/`limb` (rig: kalça/omuz pivot, `torsoG` aim-pitch, elde
+    tüfek), `spawnBot` (takım bölgesi), `enemiesOf`/`losClear`/`eyeOf` (hedef seçimi ~5Hz `nextThink`),
+    `botShootAt` (oyuncu VEYA bot hedef), `damageBot`/`killBot` (killer kredisi, devrilme animasyonu
+    `dying`/`deathStart`), `updateBotHealthbar` (isim+bar), `teamScore`
   - hasar/HUD: `damagePlayer`, `playerDie`, `updateHealth/Ammo/Score`, `addKillFeed`
   - mobil: `applyLook`, joystick `joyStart/joyMove/joyEnd`, `bindBtn`, `startGame` (touch: fullscreen)
   - efekt: `spawnTracer`, `spawnImpact`, `spawnBlood`
