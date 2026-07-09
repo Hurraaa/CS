@@ -197,7 +197,16 @@ ramp(22, 16, true);
 const settings = {
   sens: Math.max(0.3, Math.min(2, parseFloat(localStorage.getItem('awp.sens')) || 1)),
   sound: localStorage.getItem('awp.sound') !== '0',
+  diff: ['easy', 'normal', 'hard'].includes(localStorage.getItem('awp.diff')) ? localStorage.getItem('awp.diff') : 'normal',
 };
+// Difficulty scales how bots fight the PLAYER (bot-vs-bot stays balanced):
+// acc = hit-chance multiplier, dmg = damage multiplier, rate = fire-interval multiplier.
+const DIFF = {
+  easy:   { acc: 0.55, dmg: 0.65, rate: 1.45 },
+  normal: { acc: 1.0,  dmg: 1.0,  rate: 1.0 },
+  hard:   { acc: 1.4,  dmg: 1.25, rate: 0.72 },
+};
+const diff = () => DIFF[settings.diff];
 
 // ---------- Audio (WebAudio synth) ----------
 let audioCtx = null;
@@ -831,8 +840,8 @@ function botShootAt(bot, target) {
   dir.x += (Math.random() - 0.5) * spread; dir.y += (Math.random() - 0.5) * spread; dir.z += (Math.random() - 0.5) * spread;
   spawnTracer(from, dir.normalize(), dist);
   if (target === 'player') {
-    const hitChance = Math.max(0.14, Math.min(0.72, 0.8 - dist * 0.008));
-    if (Math.random() < hitChance) damagePlayer(14 + Math.random() * 16, from, bot);
+    const hitChance = Math.min(0.9, Math.max(0.14, Math.min(0.72, 0.8 - dist * 0.008)) * diff().acc);
+    if (Math.random() < hitChance) damagePlayer((14 + Math.random() * 16) * diff().dmg, from, bot);
   } else {
     // bot-vs-bot: slightly less lethal so firefights are watchable and winnable
     const hitChance = Math.max(0.1, Math.min(0.5, 0.6 - dist * 0.008));
@@ -1009,6 +1018,14 @@ controls.pointerSpeed = settings.sens;
     settings.sound = chk.checked;
     localStorage.setItem('awp.sound', settings.sound ? '1' : '0');
   });
+  const diffBtns = document.querySelectorAll('.diffbtns button');
+  const paintDiff = () => diffBtns.forEach(b => b.classList.toggle('on', b.dataset.d === settings.diff));
+  paintDiff();
+  diffBtns.forEach(b => b.addEventListener('click', () => {
+    settings.diff = b.dataset.d;
+    localStorage.setItem('awp.diff', settings.diff);
+    paintDiff();
+  }));
 }
 
 // ---------- Menu / pointer lock ----------
@@ -1206,7 +1223,9 @@ function update(dt) {
         const from = bot.head.getWorldPosition(new THREE.Vector3());
         if (losClear(from, tPos)) {
           botShootAt(bot, bot.enemy);
-          bot.nextShot = time + 0.9 + Math.random() * 0.8;
+          // difficulty only paces shots aimed at the player
+          const rate = (bot.enemy === 'player') ? diff().rate : 1;
+          bot.nextShot = time + (0.9 + Math.random() * 0.8) * rate;
           bot.lastSeen = time;
         }
       }

@@ -2,6 +2,10 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.3.7
+- **Bot zorluğu:** menüde Kolay/Orta/Zor seçimi (localStorage kalıcı). Yalnız sana karşı isabet,
+  hasar ve atış temposunu ölçekler — bot-vs-bot dengesi bozulmaz.
+
 ## v1.3.6
 - **Ayarlar menüsü:** hassasiyet slider'ı (0.3–2.0, fare + dokunmatik bakışa uygulanır) ve ses aç/kapa.
   İkisi de localStorage'da kalıcı — sayfa yenilense de korunur.

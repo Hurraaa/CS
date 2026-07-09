@@ -155,6 +155,9 @@
   .settings input[type="range"] { flex: 1; accent-color: #3dff8b; }
   .settings input[type="checkbox"] { accent-color: #3dff8b; width: 16px; height: 16px; }
   .settings #sensVal { font-family: monospace; opacity: .7; min-width: 34px; }
+  .diffbtns { display: flex; gap: 6px; margin-left: auto; }
+  .diffbtns button { padding: 5px 12px; font-size: 12px; border-radius: 6px; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.05); color: #e7ecef; cursor: pointer; }
+  .diffbtns button.on { background: rgba(61,255,139,.22); border-color: #3dff8b; color: #3dff8b; font-weight: 700; }
   #loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; letter-spacing: 3px; opacity: .7; }
   #keysMobile { display: none; }
   body.mobile #keysDesktop { display: none; }
@@ -274,6 +277,11 @@
         <span id="sensVal">1.00</span>
       </label>
       <label class="srow chk"><input type="checkbox" id="soundChk" checked /> Ses açık</label>
+      <div class="srow">Bot zorluğu
+        <div class="diffbtns">
+          <button type="button" data-d="easy">Kolay</button><button type="button" data-d="normal">Orta</button><button type="button" data-d="hard">Zor</button>
+        </div>
+      </div>
     </div>
     <div class="hint">Telefonu <b>yatay</b> tut · Başlamak için OYNA'ya dokun</div>
   </div>
