@@ -73,6 +73,26 @@
 
   /* Weapon viewmodel canvas overlay drawn via three; nothing here */
 
+  /* ---------- Mobile touch controls ---------- */
+  #mobileUI { position: absolute; inset: 0; pointer-events: none; display: none; }
+  body.mobile.playing #mobileUI { display: block; }
+
+  #joy { position: absolute; left: 4vh; bottom: 4vh; width: 34vw; max-width: 190px; height: 34vw; max-height: 190px; aspect-ratio: 1; border-radius: 50%; background: rgba(255,255,255,.06); border: 2px solid rgba(255,255,255,.14); pointer-events: auto; touch-action: none; }
+  #joyKnob { position: absolute; left: 50%; top: 50%; width: 42%; height: 42%; border-radius: 50%; background: rgba(61,255,139,.35); border: 2px solid rgba(61,255,139,.7); transform: translate(-50%,-50%); box-shadow: 0 0 12px rgba(61,255,139,.3); }
+
+  .mbtn { position: absolute; pointer-events: auto; touch-action: none; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: rgba(20,26,32,.5); border: 2px solid rgba(255,255,255,.18); color: #e7ecef; font-weight: 700; user-select: none; -webkit-user-select: none; }
+  .mbtn:active { background: rgba(61,255,139,.25); border-color: rgba(61,255,139,.7); }
+  .mbtn.on { background: rgba(61,255,139,.3); border-color: #3dff8b; }
+  #btnFire { right: 5vw; bottom: 20vh; width: 20vw; max-width: 110px; height: 20vw; max-height: 110px; font-size: 3.4vw; background: rgba(180,40,40,.4); border-color: rgba(255,90,90,.5); }
+  #btnScope { right: 26vw; bottom: 15vh; width: 15vw; max-width: 82px; height: 15vw; max-height: 82px; font-size: 3vw; }
+  #btnReload { right: 6vw; bottom: 40vh; width: 13vw; max-width: 74px; height: 13vw; max-height: 74px; font-size: 2.6vw; }
+  #btnJump { right: 24vw; bottom: 33vh; width: 13vw; max-width: 74px; height: 13vw; max-height: 74px; font-size: 2.6vw; }
+  #btnCrouch { right: 5vw; bottom: 6vh; width: 12vw; max-width: 68px; height: 12vw; max-height: 68px; font-size: 2.4vw; }
+  .mbtn .ic { font-size: 1.6em; line-height: 1; }
+
+  #rotateHint { position: absolute; inset: 0; z-index: 50; display: none; align-items: center; justify-content: center; text-align: center; background: #06080b; color: #e7ecef; font-size: 18px; letter-spacing: 1px; padding: 30px; }
+  @media (orientation: portrait) { body.mobile.playing #rotateHint { display: flex; } }
+
   /* ---------- Overlays ---------- */
   #menu { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at 50% 40%, rgba(20,28,36,.86), rgba(6,8,11,.96)); backdrop-filter: blur(2px); }
   #menu.hidden { display: none; }
@@ -86,6 +106,15 @@
   .keys b { color: #3dff8b; font-family: monospace; font-weight: 700; }
   #menu .hint { font-size: 11px; opacity: .4; margin-top: 16px; letter-spacing: 1px; }
   #loading { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 14px; letter-spacing: 3px; opacity: .7; }
+  #keysMobile { display: none; }
+  body.mobile #keysDesktop { display: none; }
+  body.mobile #keysMobile { display: grid; }
+  /* On mobile move health/ammo to the top corners so they don't clash with the joystick + buttons */
+  body.mobile #vitals { top: 10px; left: 14px; bottom: auto; }
+  body.mobile #health { font-size: 30px; }
+  body.mobile #ammoBox { top: 10px; right: 14px; bottom: auto; }
+  body.mobile #ammo { font-size: 30px; }
+  body.mobile #killfeed { top: 56px; }
 </style>
 
 <div id="app"></div>
@@ -122,12 +151,22 @@
   <div id="dmgflash"></div>
 </div>
 
+<div id="mobileUI">
+  <div id="joy"><div id="joyKnob"></div></div>
+  <div class="mbtn" id="btnFire"><span class="ic">🎯</span></div>
+  <div class="mbtn" id="btnScope"><span class="ic">🔍</span></div>
+  <div class="mbtn" id="btnReload"><span class="ic">⟳</span></div>
+  <div class="mbtn" id="btnJump"><span class="ic">⤒</span></div>
+  <div class="mbtn" id="btnCrouch"><span class="ic">⤓</span></div>
+</div>
+<div id="rotateHint">📱↻<br />Telefonu yatay çevir</div>
+
 <div id="menu">
   <div class="card">
     <h1><span class="awp">AWP</span> HANGAR</h1>
     <div class="tag">CS-STYLE DEATHMATCH · BOTS</div>
     <button class="play" id="playBtn">OYNA ▸</button>
-    <div class="keys">
+    <div class="keys" id="keysDesktop">
       <b>W A S D</b><span>Hareket</span>
       <b>Fare</b><span>Bak</span>
       <b>Sol Tık</b><span>Ateş (AWP)</span>
@@ -138,7 +177,14 @@
       <b>Ctrl</b><span>Çömel</span>
       <b>Esc</b><span>Menü / duraklat</span>
     </div>
-    <div class="hint">Fare kilidi için tıkla · En yüksek skoru yakala</div>
+    <div class="keys" id="keysMobile">
+      <b>◐ Sol</b><span>Hareket joystick</span>
+      <b>Sağ sürükle</b><span>Bak / nişan al</span>
+      <b>🎯</b><span>Ateş</span>
+      <b>🔍</b><span>Scope / Zoom</span>
+      <b>⟳</b><span>Şarjör · ⤒ Zıpla · ⤓ Çömel</span>
+    </div>
+    <div class="hint">Telefonu <b>yatay</b> tut · Başlamak için OYNA'ya dokun</div>
   </div>
 </div>
 
@@ -182,6 +228,17 @@ const controls = new PointerLockControls(camera, renderer.domElement);
 scene.add(controls.getObject());
 
 let time = 0;   // global sim clock (referenced by bot spawn/AI created below)
+
+// Mobile / touch state
+const isTouch = matchMedia('(pointer: coarse)').matches || ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+let mobileActive = false;          // true while playing on a touch device (no pointer lock)
+let yaw = 0, pitch = 0;            // camera orientation we own on mobile
+const moveVec = { x: 0, y: 0 };    // analog joystick output: x=strafe, y=forward
+let joyActive = false, joyMag = 0;
+let mCrouch = false;               // mobile crouch toggle
+camera.rotation.order = 'YXZ';     // matches PointerLockControls; lets us set yaw/pitch directly
+const isActive = () => controls.isLocked || mobileActive;
+if (isTouch) document.body.classList.add('mobile');
 
 // ---------- Procedural textures ----------
 function canvasTex(w, h, draw, repeat = 1, repeatY) {
@@ -384,7 +441,8 @@ function respawnPlayer() {
   const s = SPAWNS[Math.floor(Math.random() * SPAWNS.length)];
   player.pos.copy(s); player.vel.set(0, 0, 0); player.hp = 100; player.alive = true; player.crouch = false;
   // face the arena center so you never spawn staring at a wall
-  camera.rotation.set(0, Math.atan2(s.x, s.z), 0);
+  yaw = Math.atan2(s.x, s.z); pitch = 0;
+  camera.rotation.set(pitch, yaw, 0);
 }
 respawnPlayer();
 
@@ -541,6 +599,87 @@ renderer.domElement.addEventListener('mousedown', e => {
 });
 renderer.domElement.addEventListener('mouseup', e => { if (e.button === 2) setScope(false); });
 renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
+
+// ---------- Touch controls (mobile) ----------
+// Look: drag anywhere on the canvas (touches on buttons/joystick are captured by them).
+let lookId = null, lookX = 0, lookY = 0;
+const PITCH_LIMIT = Math.PI / 2 - 0.02;
+function applyLook(dx, dy) {
+  const sens = (scoped ? 0.0016 : 0.0042);
+  yaw -= dx * sens;
+  pitch -= dy * sens;
+  pitch = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, pitch));
+  camera.rotation.set(pitch, yaw, 0);
+}
+const canvas = renderer.domElement;
+canvas.addEventListener('touchstart', e => {
+  if (!mobileActive) return;
+  for (const t of e.changedTouches) {
+    if (lookId === null) { lookId = t.identifier; lookX = t.clientX; lookY = t.clientY; }
+  }
+}, { passive: true });
+canvas.addEventListener('touchmove', e => {
+  if (!mobileActive) return;
+  for (const t of e.changedTouches) {
+    if (t.identifier === lookId) {
+      applyLook(t.clientX - lookX, t.clientY - lookY);
+      lookX = t.clientX; lookY = t.clientY;
+    }
+  }
+}, { passive: true });
+function endLook(e) { for (const t of e.changedTouches) if (t.identifier === lookId) lookId = null; }
+canvas.addEventListener('touchend', endLook, { passive: true });
+canvas.addEventListener('touchcancel', endLook, { passive: true });
+
+// Virtual joystick (left)
+const joy = document.getElementById('joy'), joyKnob = document.getElementById('joyKnob');
+let joyId = null, joyCX = 0, joyCY = 0, joyR = 60;
+function joyStart(e) {
+  const t = e.changedTouches[0];
+  const r = joy.getBoundingClientRect();
+  joyCX = r.left + r.width / 2; joyCY = r.top + r.height / 2; joyR = r.width * 0.5;
+  joyId = t.identifier; joyActive = true;
+  joyMove(e);
+  e.preventDefault();
+}
+function joyMove(e) {
+  for (const t of e.changedTouches) {
+    if (t.identifier !== joyId) continue;
+    let dx = t.clientX - joyCX, dy = t.clientY - joyCY;
+    const d = Math.hypot(dx, dy) || 0.0001;
+    const cl = Math.min(d, joyR);
+    const nx = (dx / d) * cl, ny = (dy / d) * cl;
+    joyKnob.style.transform = `translate(calc(-50% + ${nx}px), calc(-50% + ${ny}px))`;
+    moveVec.x = nx / joyR;          // strafe (right positive)
+    moveVec.y = -ny / joyR;         // forward (up = forward)
+    joyMag = cl / joyR;
+  }
+  e.preventDefault();
+}
+function joyEnd(e) {
+  for (const t of e.changedTouches) {
+    if (t.identifier === joyId) {
+      joyId = null; joyActive = false; joyMag = 0; moveVec.x = moveVec.y = 0;
+      joyKnob.style.transform = 'translate(-50%,-50%)';
+    }
+  }
+}
+joy.addEventListener('touchstart', joyStart, { passive: false });
+joy.addEventListener('touchmove', joyMove, { passive: false });
+joy.addEventListener('touchend', joyEnd, { passive: true });
+joy.addEventListener('touchcancel', joyEnd, { passive: true });
+
+// Action buttons
+function bindBtn(id, onDown) {
+  const b = document.getElementById(id);
+  b.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); onDown(b); }, { passive: false });
+}
+bindBtn('btnFire', () => shoot());
+bindBtn('btnScope', (b) => { setScope(!scoped); b.classList.toggle('on', scoped); });
+bindBtn('btnReload', () => startReload());
+bindBtn('btnJump', () => { wantJump = true; });
+// Crouch toggle: tap to toggle crouch on/off (read in update via mCrouch)
+bindBtn('btnCrouch', (b) => { mCrouch = !mCrouch; b.classList.toggle('on', mCrouch); });
 
 function setScope(on) {
   scoped = on;
@@ -736,10 +875,23 @@ function addKillFeed(killer, victim, byPlayer) {
 // ---------- Menu / pointer lock ----------
 const menu = el('menu'), hud = el('hud');
 el('loading').style.display = 'none';
-function startGame() { ensureAudio(); if (audioCtx.state === 'suspended') audioCtx.resume(); controls.lock(); }
+function enterPlayUI() { menu.classList.add('hidden'); hud.classList.remove('hidden'); document.body.classList.add('playing'); }
+function exitPlayUI() { menu.classList.remove('hidden'); hud.classList.add('hidden'); document.body.classList.remove('playing'); setScope(false); }
+function startGame() {
+  ensureAudio(); if (audioCtx.state === 'suspended') audioCtx.resume();
+  if (isTouch) {
+    // Mobile: no pointer lock — go fullscreen, try landscape, run via mobileActive
+    mobileActive = true; enterPlayUI();
+    const el = document.documentElement;
+    (el.requestFullscreen || el.webkitRequestFullscreen || (()=>{})).call(el)?.catch?.(()=>{});
+    try { screen.orientation && screen.orientation.lock && screen.orientation.lock('landscape').catch(()=>{}); } catch (e) {}
+  } else {
+    controls.lock();
+  }
+}
 el('playBtn').addEventListener('click', startGame);
-controls.addEventListener('lock', () => { menu.classList.add('hidden'); hud.classList.remove('hidden'); });
-controls.addEventListener('unlock', () => { menu.classList.remove('hidden'); hud.classList.add('hidden'); setScope(false); });
+controls.addEventListener('lock', enterPlayUI);
+controls.addEventListener('unlock', exitPlayUI);
 
 // ---------- Main loop ----------
 const clock = new THREE.Clock();
@@ -749,7 +901,7 @@ function update(dt) {
 
   // ----- Player movement -----
   if (player.alive) {
-    const wishCrouch = keys['ControlLeft'] || keys['ControlRight'];
+    const wishCrouch = keys['ControlLeft'] || keys['ControlRight'] || mCrouch;
     player.crouch = wishCrouch && player.onGround;
     const targetEye = player.crouch ? EYE_CROUCH : EYE_STAND;
     player.eye += (targetEye - player.eye) * Math.min(1, dt * 12);
@@ -762,10 +914,12 @@ function update(dt) {
     if (keys['KeyS']) wish.sub(forward);
     if (keys['KeyD']) wish.add(right);
     if (keys['KeyA']) wish.sub(right);
+    if (joyActive) { wish.addScaledVector(right, moveVec.x); wish.addScaledVector(forward, moveVec.y); }
     const moving = wish.lengthSq() > 0;
     if (moving) wish.normalize();
 
     let speed = player.crouch ? CROUCH_SPEED : (keys['ShiftLeft'] || keys['ShiftRight']) ? WALK_SPEED : RUN_SPEED;
+    if (joyActive) speed *= Math.min(1, joyMag);   // analog throttle from joystick push
     if (scoped) speed = Math.min(speed, WALK_SPEED);
 
     const accel = player.onGround ? 1 : AIR_CTRL;
@@ -921,7 +1075,7 @@ function applyLookRecoil(dt) {
 function animate() {
   requestAnimationFrame(animate);
   const dt = Math.min(0.05, clock.getDelta());
-  if (controls.isLocked) update(dt);
+  if (isActive()) update(dt);
   // scope zoom
   const targetFov = scoped ? SCOPE_FOV : BASE_FOV;
   camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 16);
@@ -934,6 +1088,8 @@ animate();
 // ---------- Diagnostics (used only by automated smoke test; harmless in play) ----------
 window.__diag = () => ({ bots: bots.length, aliveBots: bots.filter(b => b.alive).length, colliders: colliders.length, hp: player.hp });
 window.__setScope = setScope;
+window.__yawProbe = () => yaw;
+window.__moveProbe = () => ({ x: moveVec.x, y: moveVec.y, mag: joyMag });
 window.__forceStep = (n) => {
   for (let i = 0; i < n; i++) {
     // exercise movement + shooting + bot AI paths without pointer lock
