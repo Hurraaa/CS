@@ -1,7 +1,7 @@
-# 🎯 AWP HANGAR — CS Tarzı Deathmatch
+# 🎯 AWP HANGAR — CS Tarzı 5v5 Takım Deathmatch
 
-Three.js ile yazılmış, tarayıcıda çalışan Counter-Strike esintili bir **AWP deathmatch** oyunu.
-Kapalı bir hangar arenasında botlara karşı savaşırsın. Kurulum yok — bir linke tıkla ve oyna.
+Three.js ile yazılmış, tarayıcıda çalışan Counter-Strike esintili bir **5v5 takım deathmatch** oyunu.
+Sen + 4 müttefik bot, 5 düşman bota karşı — botlar birbiriyle de çatışır. Kurulum yok — linke tıkla ve oyna.
 
 ![Önizleme](preview.png)
 
@@ -52,7 +52,10 @@ Telefonda otomatik olarak dokunmatik kontroller ve tam ekran devreye girer:
   tek atış yüksek hasar) yedek. `1`/`2`/`Q` veya mobil buton ile değiştir; her şarjör bağımsız.
 - **Ateş & recoil:** tam-otomatik sprey (tetik basılı), silaha göre hasar/yayılım, sprey recoil (tırmanır +
   geri gelir), namlu alevi, hitmarker
-- **5 bot:** görüş hattı (line-of-sight) kontrolü, seni görünce ateş açma, yaklaşma/strafe, can barı, respawn
+- **5v5 takım savaşı:** sen + 4 müttefik (mavi) vs 5 düşman (kırmızı); botlar birbiriyle de savaşır,
+  takım skorları HUD'da, dost ateşi kapalı
+- **Bot AI + rig:** en yakın görünür düşmanı seçme (LOS raycast), yaklaşma/strafe, eklemli gövde (elde
+  tüfek, hedefe nişan pozu, yürüme salınımı, devrilerek ölme), isimli can barları (Şahin, Kobra…)
 - **Hangar harita:** konteynerler, kasa yığınları, rampalar, siperler — uzun snipe hatları + saklanma
 - **CS hissi:** prosedürel dokular, gölgeli ışıklandırma, tavan kirişlerinden ışık huzmeleri
 - **HUD:** nişangah, can, cephane, K/D skoru, kill feed

@@ -17,6 +17,7 @@
 - [ ] Toon/cel-shaded görsel kimlik (rehber §2) — opsiyonel stil yükseltmesi.
 
 ## Biten
+- ~~5v5 takım deathmatch: müttefik/düşman botlar, bot-vs-bot AI, rig + animasyonlar, takım HUD~~ ✅ v1.2.0
 - ~~AK-47 + çok-silah sistemi (auto ateş, sprey recoil, 1/2/Q + mobil buton)~~ ✅ v1.1.0
 - ~~iOS-güvenli klasik-script/IIFE build + boot-gate + CI deploy~~ ✅ v1.0.0
 - ~~Mobil dokunmatik kontroller~~ ✅ v1.0.0

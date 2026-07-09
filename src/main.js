@@ -233,9 +233,10 @@ const player = {
   crouch: false,
   alive: true,
 };
+// 5v5 team play: player + 4 allies (CT, south half) vs 5 enemies (T, north half).
 const SPAWNS = [
-  new THREE.Vector3(0, 0, 42), new THREE.Vector3(-42, 0, -40), new THREE.Vector3(42, 0, 40),
-  new THREE.Vector3(-42, 0, 40), new THREE.Vector3(42, 0, -40), new THREE.Vector3(0, 0, -42),
+  new THREE.Vector3(0, 0, 42), new THREE.Vector3(-20, 0, 42), new THREE.Vector3(20, 0, 42),
+  new THREE.Vector3(-40, 0, 42), new THREE.Vector3(40, 0, 42),
 ];
 function respawnPlayer() {
   const s = SPAWNS[Math.floor(Math.random() * SPAWNS.length)];
@@ -326,54 +327,94 @@ function updateViewmodel() {
 updateViewmodel();
 
 // ---------- Bots ----------
-const BOT_COUNT = 5;
+// 5v5 teams: 'ct' = player's side (blue), 't' = enemies (red). Bots fight each other too.
+const TEAM = {
+  ct: { cloth: 0x2d4f7c, dark: 0x1c2733, names: ['Şahin', 'Kartal', 'Doğan', 'Atmaca'] },
+  t:  { cloth: 0xb23a2a, dark: 0x33221c, names: ['Kobra', 'Çakal', 'Akrep', 'Engerek', 'Pars'] },
+};
 const bots = [];
-const botMatBody = () => new THREE.MeshStandardMaterial({ color: 0xb23a2a, roughness: 0.7, metalness: 0.1 });
-const botMatDark = () => new THREE.MeshStandardMaterial({ color: 0x2a2f36, roughness: 0.8 });
-const botMatHead = () => new THREE.MeshStandardMaterial({ color: 0xd9b48f, roughness: 0.8 });
 
-function makeBot() {
+// Limb with its pivot at the top (shoulder/hip) so rotation.x swings it naturally.
+function limb(w, h, d, mat) {
+  const geo = new THREE.BoxGeometry(w, h, d);
+  geo.translate(0, -h / 2, 0);
+  return new THREE.Mesh(geo, mat);
+}
+
+function makeBot(team, name) {
+  const cfg = TEAM[team];
+  const skin = new THREE.MeshStandardMaterial({ color: 0xd9b48f, roughness: 0.8 });
+  const cloth = new THREE.MeshStandardMaterial({ color: cfg.cloth, roughness: 0.7, metalness: 0.1 });
+  const dark = new THREE.MeshStandardMaterial({ color: cfg.dark, roughness: 0.8 });
+  const gunmetal = new THREE.MeshStandardMaterial({ color: 0x141516, roughness: 0.45, metalness: 0.65 });
+  const wood = new THREE.MeshStandardMaterial({ color: 0x6b3f1d, roughness: 0.75 });
+
+  // Rig: root (feet) → legs (hip pivots) + torsoG (pitch-aims at target) → head/arms/rifle
   const g = new THREE.Group();
-  const skin = botMatHead(), cloth = botMatBody(), dark = botMatDark();
-  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.6, 0.8, 0.34), cloth); torso.position.y = 1.15;
-  const hips = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.35, 0.32), dark); hips.position.y = 0.7;
-  const head = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.36, 0.34), skin); head.position.y = 1.75;
-  const helmet = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.16, 0.4), dark); helmet.position.y = 1.9;
-  const lArm = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.7, 0.16), cloth); lArm.position.set(-0.4, 1.15, 0);
-  const rArm = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.7, 0.16), cloth); rArm.position.set(0.4, 1.15, 0);
-  const lLeg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.75, 0.2), dark); lLeg.position.set(-0.16, 0.35, 0);
-  const rLeg = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.75, 0.2), dark); rLeg.position.set(0.16, 0.35, 0);
-  const gun = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.14, 0.7), dark); gun.position.set(0.3, 1.2, -0.35);
-  [torso, hips, head, helmet, lArm, rArm, lLeg, rLeg, gun].forEach(m => { m.castShadow = true; g.add(m); });
+  const legL = limb(0.19, 0.95, 0.19, dark); legL.position.set(-0.15, 0.95, 0);
+  const legR = limb(0.19, 0.95, 0.19, dark); legR.position.set(0.15, 0.95, 0);
 
-  // health bar sprite
-  const hbCanvas = document.createElement('canvas'); hbCanvas.width = 64; hbCanvas.height = 8;
+  const torsoG = new THREE.Group(); torsoG.position.y = 0.95;
+  const torso = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.72, 0.3), cloth); torso.position.y = 0.36;
+  const vest = new THREE.Mesh(new THREE.BoxGeometry(0.58, 0.4, 0.34), dark); vest.position.y = 0.5;
+  const head = new THREE.Mesh(new THREE.BoxGeometry(0.32, 0.34, 0.32), skin); head.position.y = 0.9;
+  const helmet = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.15, 0.38), dark); helmet.position.y = 1.06;
+  // Arms reach forward to hold the rifle at the ready (CS bot stance).
+  const armL = limb(0.14, 0.62, 0.14, cloth); armL.position.set(-0.34, 0.62, 0);
+  const armR = limb(0.14, 0.62, 0.14, cloth); armR.position.set(0.34, 0.62, 0);
+  armL.rotation.set(-1.15, 0, 0.35); armR.rotation.set(-1.25, 0, -0.2);
+  // Rifle held in front of the chest, pointing forward (-z).
+  const rifle = new THREE.Group();
+  const rBody = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.1, 0.6), gunmetal);
+  const rStock = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.09, 0.2), wood); rStock.position.set(0, -0.01, 0.38);
+  const rBarrel = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.015, 0.34, 10), gunmetal);
+  rBarrel.rotation.x = Math.PI / 2; rBarrel.position.set(0, 0.02, -0.44);
+  const rMag = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.16, 0.1), gunmetal); rMag.position.set(0, -0.11, -0.05); rMag.rotation.x = 0.3;
+  rifle.add(rBody, rStock, rBarrel, rMag);
+  rifle.position.set(0.1, 0.42, -0.35);
+  torsoG.add(torso, vest, head, helmet, armL, armR, rifle);
+  g.add(legL, legR, torsoG);
+  g.traverse(m => { if (m.isMesh) m.castShadow = true; });
+
+  // name + health bar sprite
+  const hbCanvas = document.createElement('canvas'); hbCanvas.width = 96; hbCanvas.height = 22;
   const hbTex = new THREE.CanvasTexture(hbCanvas);
   const hbMat = new THREE.SpriteMaterial({ map: hbTex, depthTest: false, transparent: true });
-  const hbSprite = new THREE.Sprite(hbMat); hbSprite.position.set(0, 2.3, 0); hbSprite.scale.set(1.1, 0.14, 1); g.add(hbSprite);
+  const hbSprite = new THREE.Sprite(hbMat); hbSprite.position.set(0, 2.32, 0); hbSprite.scale.set(1.5, 0.34, 1); g.add(hbSprite);
 
   scene.add(g);
   const bot = {
-    group: g, head, torso, legs: [lLeg, rLeg], arms: [lArm, rArm],
+    team, name, group: g, head, torso, torsoG, legs: [legL, legR], arms: [armL, armR],
     hp: 100, alive: true, respawnAt: 0,
+    dying: false, deathStart: 0, fallDir: 1,
     pos: new THREE.Vector3(), vel: new THREE.Vector3(),
-    target: new THREE.Vector3(), lastSeen: 0, nextShot: 0, state: 'patrol',
-    walkPhase: Math.random() * 6,
+    target: new THREE.Vector3(),                   // patrol destination
+    enemy: null,                                   // current combat target: bot object or 'player'
+    lastSeen: 0, nextShot: 0, nextThink: 0, state: 'patrol',
+    walkPhase: Math.random() * 6, moveAmt: 0,
     hbCanvas, hbCtx: hbCanvas.getContext('2d'), hbTex, hbSprite,
-    yaw: 0,
+    yaw: 0, aimPitch: 0,
   };
   bots.push(bot);
   spawnBot(bot);
   return bot;
 }
+
+// Team spawn zones: CT south (z>0), T north (z<0).
 function spawnBot(bot) {
   let p; let tries = 0;
+  const zMin = bot.team === 'ct' ? MAP.hd * 0.45 : -MAP.hd + 3;
+  const zMax = bot.team === 'ct' ? MAP.hd - 3 : -MAP.hd * 0.45;
   do {
-    p = new THREE.Vector3((Math.random() - 0.5) * (MAP.hw * 2 - 8), 0, (Math.random() - 0.5) * (MAP.hd * 2 - 8));
+    p = new THREE.Vector3((Math.random() - 0.5) * (MAP.hw * 2 - 8), 0, zMin + Math.random() * (zMax - zMin));
     tries++;
-  } while (tries < 30 && (p.distanceTo(player.pos) < 22 || pointBlocked(p)));
-  bot.pos.copy(p); bot.hp = 100; bot.alive = true; bot.group.visible = true;
-  bot.state = 'patrol'; pickPatrol(bot); bot.nextShot = time + 1;
+  } while (tries < 30 && pointBlocked(p));
+  bot.pos.copy(p); bot.hp = 100; bot.alive = true; bot.dying = false;
+  bot.group.visible = true;
+  bot.group.rotation.set(0, 0, 0); bot.torsoG.rotation.x = 0;
+  bot.state = 'patrol'; bot.enemy = null; pickPatrol(bot);
+  bot.nextShot = time + 1; bot.nextThink = time + Math.random() * 0.3;
+  updateBotHealthbar(bot);
 }
 function pointBlocked(p) {
   for (const c of colliders) {
@@ -387,9 +428,10 @@ function pickPatrol(bot) {
   while (tries < 20 && pointBlocked(p));
   bot.target.copy(p);
 }
-for (let i = 0; i < BOT_COUNT; i++) makeBot();
+TEAM.ct.names.forEach(n => makeBot('ct', n));
+TEAM.t.names.forEach(n => makeBot('t', n));
 
-// gather bot hit meshes for raycasting
+// gather bot hit meshes for raycasting (both teams — allies block bullets but take no damage)
 function botHitMeshes() {
   const arr = [];
   for (const b of bots) if (b.alive) { arr.push(b.head, b.torso); b.head.userData.bot = b; b.head.userData.part = 'head'; b.torso.userData.bot = b; b.torso.userData.part = 'body'; }
@@ -616,9 +658,13 @@ function fireOnce() {
     const h = hits[0];
     if (h.object.userData.bot) {
       const bot = h.object.userData.bot;
-      const head = h.object.userData.part === 'head';
-      damageBot(bot, head ? w.dmgHead : w.dmgBody, head);
-      showHitmarker(bot.hp <= 0);
+      if (bot.team === 'ct') {
+        spawnImpact(h.point, h.face ? h.face.normal : null);   // friendly fire off — bullet stops on allies
+      } else {
+        const head = h.object.userData.part === 'head';
+        damageBot(bot, head ? w.dmgHead : w.dmgBody, head, 'player');
+        showHitmarker(bot.hp <= 0);
+      }
     } else {
       spawnImpact(h.point, h.face ? h.face.normal : null);
     }
@@ -679,73 +725,103 @@ function spawnBlood(point) {
 }
 
 // ---------- Bot combat ----------
-function damageBot(bot, dmg, head) {
+// killer: 'player' | a bot object | null — used for kill-feed names and team score.
+function damageBot(bot, dmg, head, killer) {
   if (!bot.alive) return;
   bot.hp -= dmg;
   spawnBlood((head ? bot.head : bot.torso).getWorldPosition(new THREE.Vector3()));
-  if (bot.hp <= 0) { killBot(bot); }
+  if (bot.hp <= 0) { killBot(bot, killer); }
   else updateBotHealthbar(bot);
 }
-function killBot(bot) {
-  bot.alive = false; bot.group.visible = false; bot.respawnAt = time + 2.2;
-  stats.kills++; updateScore();
-  addKillFeed('Sen', 'BOT', true);
+function killBot(bot, killer) {
+  bot.alive = false; bot.dying = true; bot.deathStart = time;
+  bot.fallDir = Math.random() < 0.5 ? 1 : -1;
+  bot.respawnAt = time + 3.2;
+  if (killer === 'player') { stats.kills++; teamScore.ct++; }
+  else if (killer && killer.team) teamScore[killer.team]++;
+  updateScore();
+  addKillFeed(killer === 'player' ? 'Sen' : (killer ? killer.name : '?'), bot.name,
+    killer === 'player' ? 'player' : (killer ? killer.team : 't'));
   ensureAudio();
 }
 function updateBotHealthbar(bot) {
-  const ctx = bot.hbCtx;
-  ctx.clearRect(0, 0, 64, 8);
-  ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(0, 0, 64, 8);
+  const ctx = bot.hbCtx, W = 96, H = 22;
+  ctx.clearRect(0, 0, W, H);
+  // name tag colored by team
+  ctx.font = 'bold 11px Arial';
+  ctx.textAlign = 'center';
+  ctx.fillStyle = bot.team === 'ct' ? '#6db3ff' : '#ff8a6b';
+  ctx.shadowColor = '#000'; ctx.shadowBlur = 3;
+  ctx.fillText(bot.name, W / 2, 11);
+  ctx.shadowBlur = 0;
+  // bar
+  ctx.fillStyle = 'rgba(0,0,0,.6)'; ctx.fillRect(16, 14, 64, 7);
   const p = Math.max(0, bot.hp / 100);
   ctx.fillStyle = p > 0.5 ? '#3dff8b' : p > 0.25 ? '#ffcc4d' : '#ff4d4d';
-  ctx.fillRect(1, 1, 62 * p, 6);
+  ctx.fillRect(17, 15, 62 * p, 5);
   bot.hbTex.needsUpdate = true;
 }
 
-function botCanSee(bot, eyePos) {
-  const from = bot.head.getWorldPosition(new THREE.Vector3());
-  const dir = eyePos.clone().sub(from);
-  const dist = dir.length(); dir.normalize();
-  if (dist > 70) return false;
+// Clear line of sight between two world points (map geometry only).
+function losClear(from, to, maxDist = 70) {
+  const dir = to.clone().sub(from);
+  const dist = dir.length();
+  if (dist > maxDist) return false;
+  dir.normalize();
   raycaster.set(from, dir);
   raycaster.far = dist - 0.4;
   const hits = raycaster.intersectObjects(colliderMeshes, false);
   raycaster.far = Infinity;
   return hits.length === 0;
 }
+const eyeOf = (target) => target === 'player'
+  ? controls.getObject().position.clone()
+  : target.head.getWorldPosition(new THREE.Vector3());
+const aliveTarget = (target) => target === 'player' ? player.alive : (target && target.alive);
+// Enemies of a bot: for T that includes the player; allies never target each other.
+function enemiesOf(bot) {
+  const list = [];
+  if (bot.team === 't' && player.alive) list.push('player');
+  for (const b of bots) if (b.alive && b.team !== bot.team) list.push(b);
+  return list;
+}
 
-function botShoot(bot, eyePos) {
+function botShootAt(bot, target) {
   ensureAudio();
   const from = bot.head.getWorldPosition(new THREE.Vector3());
-  const dist = from.distanceTo(eyePos);
-  // accuracy: worse at range and if player moving fast; bots are "smart but fair"
-  const spread = 0.045 + dist * 0.0026 + player.vel.length() * 0.004;
-  const hitChance = Math.max(0.14, Math.min(0.72, 0.8 - dist * 0.008));
-  playShot(false, 0.28 * Math.max(0.2, 1 - dist / 80));
-  // tracer from bot
-  const dir = eyePos.clone().sub(from).normalize();
+  const tPos = eyeOf(target);
+  const dist = from.distanceTo(tPos);
+  // audible by distance to the PLAYER, so far bot-fights fade out
+  const dToPlayer = from.distanceTo(controls.getObject().position);
+  playShot(false, 0.28 * Math.max(0.08, 1 - dToPlayer / 80));
+  const spread = 0.045 + dist * 0.0026 + (target === 'player' ? player.vel.length() * 0.004 : 0.02);
+  const dir = tPos.clone().sub(from).normalize();
   dir.x += (Math.random() - 0.5) * spread; dir.y += (Math.random() - 0.5) * spread; dir.z += (Math.random() - 0.5) * spread;
   spawnTracer(from, dir.normalize(), dist);
-  if (Math.random() < hitChance) {
-    const dmg = 14 + Math.random() * 16;
-    damagePlayer(dmg, from);
+  if (target === 'player') {
+    const hitChance = Math.max(0.14, Math.min(0.72, 0.8 - dist * 0.008));
+    if (Math.random() < hitChance) damagePlayer(14 + Math.random() * 16, from, bot);
+  } else {
+    // bot-vs-bot: slightly less lethal so firefights are watchable and winnable
+    const hitChance = Math.max(0.1, Math.min(0.5, 0.6 - dist * 0.008));
+    if (Math.random() < hitChance) damageBot(target, 11 + Math.random() * 14, false, bot);
   }
 }
 
 // ---------- Player damage ----------
 const dmgflash = document.getElementById('dmgflash');
-function damagePlayer(dmg, fromPos) {
+function damagePlayer(dmg, fromPos, attacker) {
   if (!player.alive) return;
   player.hp -= dmg;
   dmgflash.style.boxShadow = 'inset 0 0 160px 50px rgba(180,0,0,.55)';
   clearTimeout(dmgflash._t); dmgflash._t = setTimeout(() => dmgflash.style.boxShadow = 'inset 0 0 160px 40px rgba(180,0,0,0)', 120);
   updateHealth();
-  if (player.hp <= 0) playerDie();
+  if (player.hp <= 0) playerDie(attacker);
 }
-function playerDie() {
+function playerDie(attacker) {
   player.alive = false;
-  stats.deaths++; updateScore();
-  addKillFeed('BOT', 'Sen', false);
+  stats.deaths++; teamScore.t++; updateScore();
+  addKillFeed(attacker && attacker.name ? attacker.name : 'BOT', 'Sen', 't');
   setAim(false);
   setTimeout(() => { if (!player.alive) { respawnPlayer(); refillAmmo(); } updateHealth(); }, 1400);
 }
@@ -761,7 +837,8 @@ function refillAmmo() {
 }
 
 // ---------- HUD updates ----------
-const stats = { kills: 0, deaths: 0 };
+const stats = { kills: 0, deaths: 0 };          // player's personal K/D
+const teamScore = { ct: 0, t: 0 };              // total kills per team
 const el = id => document.getElementById(id);
 function updateHealth() {
   const h = Math.max(0, Math.round(player.hp));
@@ -774,18 +851,19 @@ function updateAmmo() {
   el('reserve').textContent = '∞';   // infinite reserve
 }
 function updateScore() {
-  el('kills').textContent = stats.kills;
-  el('deaths').textContent = stats.deaths;
-  el('enemies').textContent = bots.filter(b => b.alive).length;
+  el('scoreCT').textContent = teamScore.ct;
+  el('scoreT').textContent = teamScore.t;
+  el('kd').textContent = stats.kills + ' / ' + stats.deaths;
 }
 const killfeedEl = el('killfeed');
-function addKillFeed(killer, victim, byPlayer) {
+// killerSide: 'player' | 'ct' | 't' — colors the feed row's edge
+function addKillFeed(killer, victim, killerSide) {
   const row = document.createElement('div');
-  row.className = 'row' + (byPlayer ? '' : ' dead');
+  row.className = 'row ' + (killerSide === 'player' ? 'me' : killerSide);
   row.innerHTML = `<b>${killer}</b> ⟶ ${victim} <span style="opacity:.6">🎯</span>`;
   killfeedEl.prepend(row);
-  setTimeout(() => { row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }, 3200);
-  while (killfeedEl.children.length > 5) killfeedEl.lastChild.remove();
+  setTimeout(() => { row.style.opacity = '0'; setTimeout(() => row.remove(), 300); }, 3400);
+  while (killfeedEl.children.length > 6) killfeedEl.lastChild.remove();
 }
 
 // ---------- Menu / pointer lock ----------
@@ -896,35 +974,61 @@ function update(dt) {
   // reload finish (per active weapon)
   if (curAmmo().reloading && time >= curAmmo().reloadEnd) finishReload();
 
-  // ----- Bots -----
-  const eyePos = co.position.clone();
-  let visibleEnemies = 0;
+  // ----- Bots (5v5: both teams think, move, fight each other) -----
   for (const bot of bots) {
+    // death animation: tip over from the feet, then hide until respawn
+    if (bot.dying) {
+      const p = Math.min(1, (time - bot.deathStart) / 0.45);
+      bot.group.rotation.x = bot.fallDir * p * 1.45;
+      bot.group.rotation.y = bot.yaw + p * 0.6 * bot.fallDir;
+      if (time - bot.deathStart > 1.1) { bot.dying = false; bot.group.visible = false; }
+      continue;
+    }
     if (!bot.alive) {
       if (time >= bot.respawnAt) spawnBot(bot);
       continue;
     }
-    visibleEnemies++;
-    const toPlayer = eyePos.clone().sub(bot.pos); toPlayer.y = 0;
-    const distP = toPlayer.length();
-    const canSee = player.alive && botCanSee(bot, eyePos);
-    if (canSee) { bot.state = 'engage'; bot.lastSeen = time; }
-    else if (bot.state === 'engage' && time - bot.lastSeen > 3) bot.state = 'patrol';
+
+    // Think at ~5Hz: pick nearest visible enemy (bots + player for T side)
+    if (time >= bot.nextThink) {
+      bot.nextThink = time + 0.18 + Math.random() * 0.1;
+      const from = bot.head.getWorldPosition(new THREE.Vector3());
+      let best = null, bestD = Infinity;
+      for (const cand of enemiesOf(bot)) {
+        const tp = eyeOf(cand);
+        const d = from.distanceTo(tp);
+        if (d < bestD && losClear(from, tp)) { best = cand; bestD = d; }
+      }
+      if (best) { bot.enemy = best; bot.state = 'engage'; bot.lastSeen = time; }
+      else if (bot.state === 'engage' && time - bot.lastSeen > 2.5) { bot.state = 'patrol'; bot.enemy = null; }
+    }
+    if (bot.enemy && !aliveTarget(bot.enemy)) { bot.enemy = null; if (bot.state === 'engage') bot.state = 'patrol'; }
 
     let move = new THREE.Vector3();
-    if (bot.state === 'engage') {
-      // face player
-      bot.yaw = Math.atan2(toPlayer.x, toPlayer.z);
-      // keep mid range: approach if far, back off if close, strafe
-      const strafe = Math.sin(time * 1.5 + bot.walkPhase) ;
-      const dir = toPlayer.clone().normalize();
+    bot.aimPitch = 0;
+    if (bot.state === 'engage' && bot.enemy) {
+      const tPos = eyeOf(bot.enemy);
+      const toT = tPos.clone().sub(bot.pos);
+      const flat = toT.clone(); flat.y = 0;
+      const distT = flat.length();
+      bot.yaw = Math.atan2(flat.x, flat.z);
+      // torso pitch so the rifle points at the target (up/down on crates)
+      bot.aimPitch = Math.max(-0.55, Math.min(0.55, Math.atan2(toT.y - 1.4, distT)));
+      // keep mid range + strafe
+      const strafe = Math.sin(time * 1.5 + bot.walkPhase);
+      const dir = flat.normalize();
       const side = new THREE.Vector3(-dir.z, 0, dir.x);
-      if (distP > 30) move.add(dir).multiplyScalar(1);
-      else if (distP < 12) move.sub(dir);
+      if (distT > 30) move.add(dir);
+      else if (distT < 10) move.sub(dir);
       move.add(side.multiplyScalar(strafe * 0.7));
-      if (canSee && time >= bot.nextShot) {
-        botShoot(bot, eyePos.clone());
-        bot.nextShot = time + 0.9 + Math.random() * 0.8;
+      // shoot only with a live LOS at trigger time
+      if (time >= bot.nextShot) {
+        const from = bot.head.getWorldPosition(new THREE.Vector3());
+        if (losClear(from, tPos)) {
+          botShootAt(bot, bot.enemy);
+          bot.nextShot = time + 0.9 + Math.random() * 0.8;
+          bot.lastSeen = time;
+        }
       }
     } else {
       // patrol toward target
@@ -934,8 +1038,9 @@ function update(dt) {
     }
 
     // move with simple collision (slide against boxes)
-    const spd = bot.state === 'engage' ? 4.4 : 2.6;
+    const spd = bot.state === 'engage' ? 4.4 : 2.8;
     if (move.lengthSq() > 0) move.normalize().multiplyScalar(spd);
+    bot.moveAmt += ((move.lengthSq() > 0 ? 1 : 0) - bot.moveAmt) * Math.min(1, dt * 8);
     bot.pos.x += move.x * dt; botCollide(bot);
     bot.pos.z += move.z * dt; botCollide(bot);
     // clamp inside
@@ -943,16 +1048,40 @@ function update(dt) {
     bot.pos.z = Math.max(-MAP.hd + 1, Math.min(MAP.hd - 1, bot.pos.z));
     // ground for bot (stand on boxes too)
     bot.pos.y = groundHeight(bot.pos, 0.4);
-
-    bot.group.position.copy(bot.pos);
-    bot.group.rotation.y = bot.yaw;
-    // leg walk animation
-    const wobble = (Math.abs(move.x) + Math.abs(move.z)) > 0.5 ? Math.sin(time * 9 + bot.walkPhase) * 0.5 : 0;
-    bot.legs[0].rotation.x = wobble; bot.legs[1].rotation.x = -wobble;
-    // healthbar faces cam
-    updateBotHealthbar(bot);
   }
-  el('enemies').textContent = bots.filter(b => b.alive).length;
+
+  // gentle separation so bots don't merge into one blob
+  for (let i = 0; i < bots.length; i++) {
+    const a = bots[i]; if (!a.alive) continue;
+    for (let j = i + 1; j < bots.length; j++) {
+      const b = bots[j]; if (!b.alive) continue;
+      const dx = b.pos.x - a.pos.x, dz = b.pos.z - a.pos.z;
+      const d2 = dx * dx + dz * dz;
+      if (d2 < 0.81 && d2 > 0.0001) {
+        const d = Math.sqrt(d2), push = (0.9 - d) * 0.5;
+        const nx = dx / d, nz = dz / d;
+        a.pos.x -= nx * push; a.pos.z -= nz * push;
+        b.pos.x += nx * push; b.pos.z += nz * push;
+      }
+    }
+  }
+
+  // apply transforms + rig animation
+  for (const bot of bots) {
+    if (!bot.alive && !bot.dying) continue;
+    bot.group.position.copy(bot.pos);
+    if (!bot.dying) {
+      bot.group.rotation.y = bot.yaw;
+      // torso aims up/down at the target; recoils could go here later
+      bot.torsoG.rotation.x += (-bot.aimPitch - bot.torsoG.rotation.x) * Math.min(1, dt * 10);
+      // walk cycle scaled by how much the bot is actually moving
+      const swing = Math.sin(time * 9 + bot.walkPhase) * 0.55 * bot.moveAmt;
+      bot.legs[0].rotation.x = swing; bot.legs[1].rotation.x = -swing;
+      // arms keep the rifle up; add a tiny counter-sway while walking
+      bot.arms[0].rotation.x = -1.15 + swing * 0.08;
+      bot.arms[1].rotation.x = -1.25 - swing * 0.08;
+    }
+  }
 
   // ----- Effects -----
   for (let i = effects.length - 1; i >= 0; i--) {
@@ -1001,11 +1130,18 @@ updateHealth(); updateAmmo(); updateScore(); updateWeaponName();
 animate();
 
 // ---------- Diagnostics (used only by automated smoke test; harmless in play) ----------
-window.__diag = () => ({ bots: bots.length, aliveBots: bots.filter(b => b.alive).length, colliders: colliders.length, hp: player.hp, weapon: curW().name, curKey, mag: curAmmo().mag, recoil: +recPitch.toFixed(3) });
+window.__diag = () => ({
+  bots: bots.length, aliveBots: bots.filter(b => b.alive).length,
+  ct: bots.filter(b => b.team === 'ct' && b.alive).length, t: bots.filter(b => b.team === 't' && b.alive).length,
+  scoreCT: teamScore.ct, scoreT: teamScore.t,
+  colliders: colliders.length, hp: player.hp, weapon: curW().name, curKey, mag: curAmmo().mag, recoil: +recPitch.toFixed(3),
+});
 window.__switch = switchWeapon;
 window.__hold = (on) => { firing = !!on; };
 window.__advance = (n) => { for (let i = 0; i < n; i++) update(1 / 60); };   // pure loop steps (no injected fire/reload)
 window.__reload = () => startReload();
+window.__teleport = (x, z, yw, pt) => { player.pos.set(x, 0, z); yaw = yw || 0; pitch = pt || 0; camera.rotation.set(pitch, yaw, 0); };
+window.__botInfo = () => bots.map(b => ({ team: b.team, name: b.name, alive: b.alive, x: +b.pos.x.toFixed(1), z: +b.pos.z.toFixed(1) }));
 window.__setScope = setAim;
 window.__yawProbe = () => yaw;
 window.__moveProbe = () => ({ x: moveVec.x, y: moveVec.y, mag: joyMag });
