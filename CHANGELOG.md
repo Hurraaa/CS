@@ -2,6 +2,11 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.1.2
+- **Sınırsız yedek cephane:** sonsuz deathmatch'e uygun olarak yedek cephane tükenmez (HUD'da `∞`).
+  Reload her zaman şarjörü doldurur; respawn'da tüm silahların şarjörü + yedeği dolar (`refillAmmo`).
+- **Namlu alevi kaldırıldı:** ateşte çıkan soluk/çirkin alev sprite'ı tamamen silindi (tracer/iz çizgisi kalır).
+
 ## v1.1.1
 - **Mobilde ateş + nişan senkron:** ateş butonu artık bir "ateş + aim" bölgesi. Basılı tut → ateş eder;
   aynı parmağı kaydır → nişanı (bakışı) döndürür. Dokunma olayı butonda yakalandığı için parmak butondan
