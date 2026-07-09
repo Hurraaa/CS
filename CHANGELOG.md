@@ -2,6 +2,11 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.3.3
+- **Hasar yön göstergesi:** vurulunca ekran ortasında, saldırganın yönünü gösteren kırmızı kavis belirir
+  (bakışa göre döner, 0.9 sn'de solar). **Düşük can vinyeti:** can ≤30 iken kalp atışı gibi nabızlanan
+  kırmızı kenar karartması.
+
 ## v1.3.2
 - **Radar:** sol üstte bakış yönüne dönen CS tarzı radar. Müttefikler hep görünür (mavi); düşmanlar
   yalnız görüş hattına girince ~1.6 sn 'spotted' kalır (kırmızı). Ortada yeşil oyuncu oku.

@@ -818,6 +818,16 @@ function damagePlayer(dmg, fromPos, attacker) {
   player.hp -= dmg;
   dmgflash.style.boxShadow = 'inset 0 0 160px 50px rgba(180,0,0,.55)';
   clearTimeout(dmgflash._t); dmgflash._t = setTimeout(() => dmgflash.style.boxShadow = 'inset 0 0 160px 40px rgba(180,0,0,0)', 120);
+  // directional hurt arc: bearing of the attacker relative to the view (0 = dead ahead)
+  if (fromPos) {
+    const ang = Math.atan2(fromPos.x - player.pos.x, fromPos.z - player.pos.z);
+    const bearing = ang - (yaw + Math.PI);
+    const arc = document.createElement('div');
+    arc.className = 'hurt-arc';
+    arc.style.transform = `rotate(${(-bearing * 180 / Math.PI).toFixed(1)}deg)`;
+    el('hurtdir').appendChild(arc);
+    setTimeout(() => arc.remove(), 950);
+  }
   updateHealth();
   if (player.hp <= 0) playerDie(attacker);
 }
@@ -869,6 +879,7 @@ function updateHealth() {
   const h = Math.max(0, Math.round(player.hp));
   el('health').textContent = h;
   el('health').classList.toggle('low', h <= 30);
+  dmgflash.classList.toggle('lowhp', h > 0 && h <= 30);   // heartbeat vignette when critical
 }
 function updateAmmo() {
   const a = curAmmo();
