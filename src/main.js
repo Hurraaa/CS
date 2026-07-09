@@ -543,7 +543,28 @@ function bindBtn(id, onDown, onUp) {
   }
 }
 // Fire: hold to spray (auto guns fire from the loop while `firing`); semi guns fire on press.
-bindBtn('btnFire', () => { firing = true; if (!curW().auto) fireOnce(); }, () => { firing = false; });
+// Fire button = fire + aim (one thumb). Press to fire; slide the SAME thumb to aim.
+// Touch events stay captured by the button element even after the finger slides off it,
+// so you can walk (left joystick) + fire + aim all at once with two thumbs.
+{
+  const bf = document.getElementById('btnFire');
+  let fireId = null, fx = 0, fy = 0;
+  bf.addEventListener('touchstart', e => {
+    e.preventDefault(); e.stopPropagation();
+    const t = e.changedTouches[0];
+    fireId = t.identifier; fx = t.clientX; fy = t.clientY;
+    firing = true; if (!curW().auto) fireOnce();
+  }, { passive: false });
+  bf.addEventListener('touchmove', e => {
+    e.preventDefault();
+    for (const t of e.changedTouches) {
+      if (t.identifier === fireId) { applyLook(t.clientX - fx, t.clientY - fy); fx = t.clientX; fy = t.clientY; }
+    }
+  }, { passive: false });
+  const end = e => { for (const t of e.changedTouches) if (t.identifier === fireId) { fireId = null; firing = false; } };
+  bf.addEventListener('touchend', end, { passive: false });
+  bf.addEventListener('touchcancel', end, { passive: true });
+}
 bindBtn('btnScope', (b) => { setAim(!scoped); b.classList.toggle('on', scoped); });
 bindBtn('btnReload', () => startReload());
 bindBtn('btnJump', () => { wantJump = true; });

@@ -2,6 +2,12 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.1.1
+- **Mobilde ateş + nişan senkron:** ateş butonu artık bir "ateş + aim" bölgesi. Basılı tut → ateş eder;
+  aynı parmağı kaydır → nişanı (bakışı) döndürür. Dokunma olayı butonda yakalandığı için parmak butondan
+  kaysa da devam eder. Böylece sol başparmak yürür, sağ başparmak aynı anda ateş edip nişan alır.
+  (Masaüstünde sol tık ateş + sağ tık aim zaten senkrondu.)
+
 ## v1.1.0
 - **İkinci silah + çok-silah sistemi:** AK-47 (tam otomatik, 30/90, sprey recoil) eklendi ve **ana silah**
   yapıldı; AWP yedeğe alındı. Silah değiştirme: `1`=AK, `2`=AWP, `Q`=toggle; mobilde AK/AWP butonu.
