@@ -2,6 +2,10 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.3.5
+- **Dinamik nişangah:** sprey recoil'i ve hareket hâlinde nişangah açılır, durunca toparlanır
+  (isabetsizlik hissi CS gibi). **Reload barı:** cephane göstergesinin altında dolum ilerleme çubuğu.
+
 ## v1.3.4
 - **Headshot geri bildirimi:** kafadan vuruşta sarı hitmarker + metalik 'tink' sesi; kill feed'de 💀
   ikonu. **Kill onay sesi:** sen öldürünce iki tonlu kısa jingle (headshot'ta daha tiz).

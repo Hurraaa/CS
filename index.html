@@ -58,6 +58,9 @@
   #ammo { font-size: 40px; font-weight: 800; line-height: 1; }
   #ammo .reserve { font-size: 20px; opacity: .55; font-weight: 600; }
   #ammo.reloading { color: #ffcc4d; }
+  #reloadBar { display: none; margin-top: 5px; margin-left: auto; width: 110px; height: 4px; background: rgba(255,255,255,.14); border-radius: 2px; overflow: hidden; }
+  #reloadBar.show { display: block; }
+  #reloadFill { height: 100%; width: 0%; background: #ffcc4d; border-radius: 2px; }
 
   /* Top: score */
   #scorebar { position: absolute; top: 16px; left: 50%; transform: translateX(-50%); display: flex; gap: 26px; align-items: center; background: rgba(10,14,18,.55); padding: 8px 22px; border-radius: 8px; border: 1px solid rgba(255,255,255,.06); text-shadow: 0 1px 2px #000; }
@@ -205,6 +208,7 @@
   <div id="ammoBox">
     <div id="weaponName">AWP</div>
     <div id="ammo"><span id="mag">10</span> <span class="reserve">/ <span id="reserve">30</span></span></div>
+    <div id="reloadBar"><div id="reloadFill"></div></div>
   </div>
 
   <div id="dmgflash"></div>

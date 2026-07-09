@@ -1099,6 +1099,22 @@ function update(dt) {
   // live-refresh the scoreboard while it's open
   if (sbVisible && time >= sbRefreshAt) { renderScoreboard(); sbRefreshAt = time + 0.5; }
 
+  // crosshair spread mirrors recoil + movement inaccuracy
+  {
+    const moving = player.onGround && (Math.abs(player.vel.x) + Math.abs(player.vel.z)) > 2.5;
+    const spread = 1 + Math.min(1.2, recPitch * 14) + (moving ? 0.22 : 0);
+    el('crosshair').style.transform = `translate(-50%,-50%) scale(${spread.toFixed(3)})`;
+  }
+  // reload progress bar
+  {
+    const a = curAmmo(), bar = el('reloadBar');
+    if (a.reloading) {
+      bar.classList.add('show');
+      const p = 1 - (a.reloadEnd - time) / curW().reloadTime;
+      el('reloadFill').style.width = (Math.max(0, Math.min(1, p)) * 100).toFixed(1) + '%';
+    } else bar.classList.remove('show');
+  }
+
   // radar: spot enemies (LOS from player eye, ~5Hz staggered) and redraw ~15Hz
   if (time >= radarNextDraw) {
     radarNextDraw = time + 0.066;
