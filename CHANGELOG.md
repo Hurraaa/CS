@@ -2,6 +2,19 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.1.0
+- **İkinci silah + çok-silah sistemi:** AK-47 (tam otomatik, 30/90, sprey recoil) eklendi ve **ana silah**
+  yapıldı; AWP yedeğe alındı. Silah değiştirme: `1`=AK, `2`=AWP, `Q`=toggle; mobilde AK/AWP butonu.
+  Her silahın şarjörü bağımsız korunur.
+- **Ateş modları:** otomatik silahlar tetik basılıyken update döngüsünden sürekli ateş eder; AWP bolt-action
+  (basış başına tek atış). Silaha göre hasar (AK gövde 33 / kafa 130; AWP 115 / 450), atış hızı, mermi
+  yayılımı (hip/ads), ses ve namlu alevi.
+- **Sprey recoil:** her atışta nişan yukarı+yana tırmanır, tetik bırakınca yumuşakça geri gelir (bakışa
+  katmanlı, fare/dokunmatikle uyumlu). AWP tek sert tepme.
+- **Nişan (ADS):** AWP scope overlay + güçlü zoom; AK hafif zoom + daralan yayılım (overlay yok, viewmodel açık).
+- İki box-model viewmodel (ahşap AK / yeşil AWP), aktif olana göre geçiş.
+- HUD silah adını + aktif şarjörü gösterir; menü tuş açıklamaları güncellendi.
+
 ## v1.0.0
 - **iOS-güvenli build'e geçiş:** tek-dosya inline ES-module + importmap kaldırıldı; oyun `src/main.js`'e
   taşındı, esbuild ile **klasik-script / IIFE** `dist/game-[hash].js` olarak bundle ediliyor (three gömülü).

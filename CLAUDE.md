@@ -11,7 +11,8 @@ Yalnız **kalıcı kural + sabit mimari + dosya haritası + DOKUNMA listesi**. C
 Derin dersler: `docs/CLAUDE_THREEJS_MOBIL_OYUN_REHBERI.md` (gerekince aç).
 
 ## 🎯 Güncel durum
-v1.0.0 — Oynanır. AWP + scope, 5 bot (LOS AI), hangar harita, HUD, ses, deathmatch. Mobil dokunmatik + tam ekran.
+v1.1.0 — Oynanır. İki silah: **AK-47** (auto, sprey) ana + **AWP** (bolt, scope) yedek; 1/2/Q + mobil buton
+ile değiştir. 5 bot (LOS AI), hangar harita, HUD, ses, deathmatch. Mobil dokunmatik + tam ekran.
 iOS-güvenli klasik-script/IIFE build (esbuild) + GitHub Pages (Actions) deploy.
 
 ## 🏗️ Mimari (BUNU BOZMA — iOS Safari beyaz-ekran riski)
@@ -33,7 +34,9 @@ CI (`.github/workflows/pages.yml`): `main`e push → build + bootgate + Pages de
   - kurulum: `renderer`/`scene`/`camera`, `canvasTex`, ışıklar, `addBox` (harita+collider)
   - oyuncu: `respawnPlayer`, `update` (ana döngü: hareket/fizik/bot AI/efekt)
   - fizik: `collideAxis`, `groundHeight`, `botCollide` (AABB slide + step + yerçekimi)
-  - silah: `shoot`, `startReload`/`finishReload`, `setScope`, viewGroup/muzzle flash
+  - silah: `WEAPONS`/`ammoState`/`curKey`, `fireOnce` (silaha göre hasar/spread/recoil), `switchWeapon`,
+    `setAim` (scope=AWP overlay / ADS=AK zoom), `startReload`/`finishReload`, `awpModel`/`akModel`/`updateViewmodel`
+  - recoil: `recPitch`/`recYaw` sprey birikimi (update'te bakışa katmanlı, auto-recover); `firing` tetik durumu
   - botlar: `makeBot`, `spawnBot`, `botCanSee` (LOS raycast), `botShoot`, `damageBot`/`killBot`
   - hasar/HUD: `damagePlayer`, `playerDie`, `updateHealth/Ammo/Score`, `addKillFeed`
   - mobil: `applyLook`, joystick `joyStart/joyMove/joyEnd`, `bindBtn`, `startGame` (touch: fullscreen)

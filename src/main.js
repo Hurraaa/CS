@@ -246,32 +246,90 @@ function respawnPlayer() {
 }
 respawnPlayer();
 
-// Weapon: AWP
-const AWP = { mag: 10, magMax: 10, reserve: 30, reserveMax: 90, dmgBody: 115, dmgHead: 450, fireDelay: 1.45, reloadTime: 3.4 };
-const weapon = { mag: AWP.mag, reserve: AWP.reserve, lastShot: -99, reloading: false, reloadEnd: 0 };
+// ---------- Weapons ----------
+// Two guns: an AK-47-style full-auto rifle (primary, spray) and the AWP (secondary, bolt).
+const WEAPONS = {
+  ak: {
+    key: 'ak', name: 'AK-47', auto: true,
+    magMax: 30, reserveMax: 90, dmgBody: 33, dmgHead: 130,
+    fireDelay: 0.1, reloadTime: 2.4, scope: false, adsFov: 58, walkWhileAiming: false,
+    recoilUp: 0.010, recoilSide: 0.006, recover: 6.5, kick: 0.05,
+    spreadHip: 0.014, spreadAds: 0.004, sndBig: false, sndVol: 0.34,
+  },
+  awp: {
+    key: 'awp', name: 'AWP', auto: false,
+    magMax: 10, reserveMax: 30, dmgBody: 115, dmgHead: 450,
+    fireDelay: 1.45, reloadTime: 3.4, scope: true, adsFov: SCOPE_FOV, walkWhileAiming: true,
+    recoilUp: 0.05, recoilSide: 0.012, recover: 3.5, kick: 0.12,
+    spreadHip: 0.02, spreadAds: 0.0, sndBig: true, sndVol: 0.5,
+  },
+};
+// Per-weapon ammo/reload runtime, kept independently so switching preserves each mag.
+const ammoState = {
+  ak: { mag: 30, reserve: 90, lastShot: -99, reloading: false, reloadEnd: 0 },
+  awp: { mag: 10, reserve: 30, lastShot: -99, reloading: false, reloadEnd: 0 },
+};
+let curKey = 'ak';                     // start on the rifle — spray first
+const curW = () => WEAPONS[curKey];
+const curAmmo = () => ammoState[curKey];
+let firing = false;                    // left mouse / fire button held
+// aim-recoil accumulators (layered on top of look; auto-recovers)
+let recPitch = 0, recYaw = 0, recAppP = 0, recAppY = 0;
 
-// ---------- Weapon viewmodel (simple AWP made of boxes) ----------
+// ---------- Weapon viewmodels (box-built AK-47 + AWP) ----------
 const viewGroup = new THREE.Group();
 camera.add(viewGroup);
 scene.add(camera); // ensure camera (already via controls) — safe, adds once
+viewGroup.position.set(0.22, -0.2, -0.42);
+viewGroup.rotation.y = 0.02;
+
+const metalMat = new THREE.MeshStandardMaterial({ color: 0x1a1c1e, roughness: 0.4, metalness: 0.7 });
+
+// AWP model
+const awpModel = new THREE.Group();
 {
   const bodyMat = new THREE.MeshStandardMaterial({ color: 0x20361f, roughness: 0.6, metalness: 0.3 });
-  const metalMat = new THREE.MeshStandardMaterial({ color: 0x1a1c1e, roughness: 0.4, metalness: 0.7 });
   const scopeMat = new THREE.MeshStandardMaterial({ color: 0x0a0a0a, roughness: 0.3, metalness: 0.6 });
   const stock = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.16, 0.5), bodyMat); stock.position.set(0, -0.02, 0.18);
   const body = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.12, 0.7), bodyMat); body.position.set(0, 0.02, -0.28);
   const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.9, 12), metalMat); barrel.rotation.x = Math.PI / 2; barrel.position.set(0, 0.05, -0.85);
   const scopeTube = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.34, 14), scopeMat); scopeTube.rotation.x = Math.PI / 2; scopeTube.position.set(0, 0.13, -0.2);
   const mag = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.16, 0.12), metalMat); mag.position.set(0, -0.12, -0.15);
-  viewGroup.add(stock, body, barrel, scopeTube, mag);
-  viewGroup.position.set(0.22, -0.2, -0.42);
-  viewGroup.rotation.y = 0.02;
-  [stock, body, barrel, scopeTube, mag].forEach(m => { m.castShadow = false; });
+  awpModel.add(stock, body, barrel, scopeTube, mag);
 }
-// muzzle flash sprite
+viewGroup.add(awpModel);
+
+// AK-47 model (wood furniture + banana mag)
+const akModel = new THREE.Group();
+{
+  const wood = new THREE.MeshStandardMaterial({ color: 0x6b3f1d, roughness: 0.75, metalness: 0.05 });
+  const black = new THREE.MeshStandardMaterial({ color: 0x161719, roughness: 0.5, metalness: 0.6 });
+  const stock = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.13, 0.42), wood); stock.position.set(0, -0.03, 0.2);
+  const receiver = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.13, 0.5), black); receiver.position.set(0, 0.01, -0.18);
+  const handguard = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.1, 0.34), wood); handguard.position.set(0, 0, -0.5);
+  const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.017, 0.017, 0.5, 12), metalMat); barrel.rotation.x = Math.PI / 2; barrel.position.set(0, 0.03, -0.82);
+  const gasblock = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.05, 0.12), black); gasblock.position.set(0, 0.06, -0.55);
+  const banana = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.24, 0.13), black); banana.position.set(0, -0.16, -0.08); banana.rotation.x = 0.35;
+  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.15, 0.07), black); grip.position.set(0, -0.13, 0.02); grip.rotation.x = -0.3;
+  const sight = new THREE.Mesh(new THREE.BoxGeometry(0.02, 0.05, 0.03), black); sight.position.set(0, 0.09, -0.34);
+  akModel.add(stock, receiver, handguard, barrel, gasblock, banana, grip, sight);
+}
+akModel.visible = false;
+viewGroup.add(akModel);
+
+viewGroup.traverse(m => { if (m.isMesh) m.castShadow = false; });
+
+// muzzle flash sprite (shared; repositioned per weapon)
 const flashMat = new THREE.SpriteMaterial({ color: 0xffdd88, transparent: true, opacity: 0, depthTest: false });
-const flash = new THREE.Sprite(flashMat); flash.scale.set(0.5, 0.5, 0.5); flash.position.set(0, 0.05, -1.4);
+const flash = new THREE.Sprite(flashMat); flash.scale.set(0.5, 0.5, 0.5); flash.position.set(0, 0.05, -1.15);
 viewGroup.add(flash);
+
+function updateViewmodel() {
+  awpModel.visible = curKey === 'awp';
+  akModel.visible = curKey === 'ak';
+  flash.position.z = curKey === 'awp' ? -1.45 : -1.15;
+}
+updateViewmodel();
 
 // ---------- Bots ----------
 const BOT_COUNT = 5;
@@ -387,6 +445,9 @@ addEventListener('keydown', e => {
   keys[e.code] = true;
   if (e.code === 'Space') { wantJump = true; e.preventDefault(); }
   if (e.code === 'KeyR') startReload();
+  if (e.code === 'Digit1') switchWeapon('ak');
+  if (e.code === 'Digit2') switchWeapon('awp');
+  if (e.code === 'KeyQ') switchWeapon(curKey === 'ak' ? 'awp' : 'ak');
   if (['ControlLeft','ControlRight'].includes(e.code)) e.preventDefault();
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
@@ -394,10 +455,13 @@ addEventListener('keyup', e => { keys[e.code] = false; });
 let scoped = false;
 renderer.domElement.addEventListener('mousedown', e => {
   if (!controls.isLocked) return;
-  if (e.button === 0) shoot();
-  if (e.button === 2) setScope(true);
+  if (e.button === 0) { firing = true; if (!curW().auto) fireOnce(); }   // auto guns fire from the update loop
+  if (e.button === 2) setAim(true);
 });
-renderer.domElement.addEventListener('mouseup', e => { if (e.button === 2) setScope(false); });
+renderer.domElement.addEventListener('mouseup', e => {
+  if (e.button === 0) firing = false;
+  if (e.button === 2) setAim(false);
+});
 renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
 
 // ---------- Touch controls (mobile) ----------
@@ -405,7 +469,7 @@ renderer.domElement.addEventListener('contextmenu', e => e.preventDefault());
 let lookId = null, lookX = 0, lookY = 0;
 const PITCH_LIMIT = Math.PI / 2 - 0.02;
 function applyLook(dx, dy) {
-  const sens = (scoped ? 0.0016 : 0.0042);
+  const sens = scoped ? (curW().scope ? 0.0016 : 0.0028) : 0.0042;
   yaw -= dx * sens;
   pitch -= dy * sens;
   pitch = Math.max(-PITCH_LIMIT, Math.min(PITCH_LIMIT, pitch));
@@ -470,51 +534,76 @@ joy.addEventListener('touchend', joyEnd, { passive: true });
 joy.addEventListener('touchcancel', joyEnd, { passive: true });
 
 // Action buttons
-function bindBtn(id, onDown) {
+function bindBtn(id, onDown, onUp) {
   const b = document.getElementById(id);
-  b.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); onDown(b); }, { passive: false });
+  b.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); onDown && onDown(b); }, { passive: false });
+  if (onUp) {
+    b.addEventListener('touchend', e => { e.preventDefault(); onUp(b); }, { passive: false });
+    b.addEventListener('touchcancel', () => onUp(b), { passive: true });
+  }
 }
-bindBtn('btnFire', () => shoot());
-bindBtn('btnScope', (b) => { setScope(!scoped); b.classList.toggle('on', scoped); });
+// Fire: hold to spray (auto guns fire from the loop while `firing`); semi guns fire on press.
+bindBtn('btnFire', () => { firing = true; if (!curW().auto) fireOnce(); }, () => { firing = false; });
+bindBtn('btnScope', (b) => { setAim(!scoped); b.classList.toggle('on', scoped); });
 bindBtn('btnReload', () => startReload());
 bindBtn('btnJump', () => { wantJump = true; });
-// Crouch toggle: tap to toggle crouch on/off (read in update via mCrouch)
 bindBtn('btnCrouch', (b) => { mCrouch = !mCrouch; b.classList.toggle('on', mCrouch); });
+bindBtn('btnSwap', () => switchWeapon(curKey === 'ak' ? 'awp' : 'ak'));
 
-function setScope(on) {
+function setAim(on) {
   scoped = on;
-  document.getElementById('scope').classList.toggle('on', on);
+  const useScope = on && curW().scope;             // full scope overlay only for AWP
+  document.getElementById('scope').classList.toggle('on', useScope);
   document.getElementById('crosshair').classList.toggle('hidden', on);
-  document.getElementById('dot').style.display = on ? 'none' : 'block';
-  viewGroup.visible = !on;
-  controls.pointerSpeed = on ? 0.35 : 1.0;
+  document.getElementById('dot').style.display = useScope ? 'none' : 'block';
+  viewGroup.visible = !useScope;
+  controls.pointerSpeed = on ? (curW().scope ? 0.35 : 0.62) : 1.0;
+}
+
+function updateWeaponName() {
+  el('weaponName').textContent = curW().name;
+  const sb = document.getElementById('btnSwap');
+  if (sb) sb.textContent = curKey === 'ak' ? 'AWP' : 'AK';   // label shows the gun you'll switch TO
+}
+function switchWeapon(key) {
+  if (key === curKey || !WEAPONS[key]) return;
+  const a = curAmmo();
+  if (a.reloading) { a.reloading = false; document.getElementById('ammo').classList.remove('reloading'); }
+  setAim(false);
+  curKey = key; firing = false;
+  updateViewmodel(); updateAmmo(); updateWeaponName();
+  ensureAudio(); playClick();
 }
 
 // ---------- Shooting ----------
 const raycaster = new THREE.Raycaster();
-let recoil = 0, recoilVel = 0;
 const hitmarkerEl = document.getElementById('hitmarker');
 
-function shoot() {
-  if (!player.alive || weapon.reloading) return;
-  if (time - weapon.lastShot < AWP.fireDelay) return;
-  if (weapon.mag <= 0) { startReload(); return; }
-  weapon.lastShot = time; weapon.mag--; updateAmmo();
-  ensureAudio(); playShot(true, 0.5);
-  // muzzle flash + recoil
-  flashMat.opacity = 1; flash.scale.setScalar(0.45 + Math.random() * 0.25);
-  recoilVel += scoped ? 0.06 : 0.11;
-  viewGroup.position.z = -0.34; // kick back
+function fireOnce() {
+  if (!player.alive) return;
+  const w = curW(), a = curAmmo();
+  if (a.reloading) return;
+  if (time - a.lastShot < w.fireDelay) return;
+  if (a.mag <= 0) { startReload(); return; }
+  a.lastShot = time; a.mag--; updateAmmo();
+  ensureAudio(); playShot(w.sndBig, w.sndVol);
+  // muzzle flash + viewmodel kick + aim recoil
+  flashMat.opacity = 1; flash.scale.setScalar((w.scope ? 0.5 : 0.35) + Math.random() * 0.25);
+  viewGroup.position.z = -0.42 + w.kick * 0.7;
+  recPitch += w.recoilUp;
+  recYaw += (Math.random() * 2 - 1) * w.recoilSide;
 
-  raycaster.setFromCamera({ x: 0, y: 0 }, camera);
+  // bullet spread: tighter when aiming
+  const spread = scoped ? w.spreadAds : w.spreadHip;
+  raycaster.setFromCamera({ x: (Math.random() * 2 - 1) * spread, y: (Math.random() * 2 - 1) * spread }, camera);
   const targets = [...botHitMeshes(), ...colliderMeshes];
   const hits = raycaster.intersectObjects(targets, false);
   if (hits.length) {
     const h = hits[0];
     if (h.object.userData.bot) {
       const bot = h.object.userData.bot;
-      const dmg = h.object.userData.part === 'head' ? AWP.dmgHead : AWP.dmgBody;
-      damageBot(bot, dmg, h.object.userData.part === 'head');
+      const head = h.object.userData.part === 'head';
+      damageBot(bot, head ? w.dmgHead : w.dmgBody, head);
       showHitmarker(bot.hp <= 0);
     } else {
       spawnImpact(h.point, h.face ? h.face.normal : null);
@@ -531,15 +620,16 @@ function showHitmarker(kill) {
 }
 
 function startReload() {
-  if (weapon.reloading || weapon.mag >= AWP.magMax || weapon.reserve <= 0) return;
-  weapon.reloading = true; weapon.reloadEnd = time + AWP.reloadTime;
+  const w = curW(), a = curAmmo();
+  if (a.reloading || a.mag >= w.magMax || a.reserve <= 0) return;
+  a.reloading = true; a.reloadEnd = time + w.reloadTime;
   document.getElementById('ammo').classList.add('reloading');
   ensureAudio(); playClick();
 }
 function finishReload() {
-  const need = AWP.magMax - weapon.mag;
-  const take = Math.min(need, weapon.reserve);
-  weapon.mag += take; weapon.reserve -= take; weapon.reloading = false;
+  const w = curW(), a = curAmmo();
+  const take = Math.min(w.magMax - a.mag, a.reserve);
+  a.mag += take; a.reserve -= take; a.reloading = false;
   document.getElementById('ammo').classList.remove('reloading');
   updateAmmo(); playClick();
 }
@@ -641,7 +731,7 @@ function playerDie() {
   player.alive = false;
   stats.deaths++; updateScore();
   addKillFeed('BOT', 'Sen', false);
-  setScope(false);
+  setAim(false);
   setTimeout(() => { if (!player.alive) respawnPlayer(); updateHealth(); }, 1400);
 }
 
@@ -654,8 +744,9 @@ function updateHealth() {
   el('health').classList.toggle('low', h <= 30);
 }
 function updateAmmo() {
-  el('mag').textContent = weapon.mag;
-  el('reserve').textContent = weapon.reserve;
+  const a = curAmmo();
+  el('mag').textContent = a.mag;
+  el('reserve').textContent = a.reserve;
 }
 function updateScore() {
   el('kills').textContent = stats.kills;
@@ -676,7 +767,7 @@ function addKillFeed(killer, victim, byPlayer) {
 const menu = el('menu'), hud = el('hud');
 el('loading').style.display = 'none';
 function enterPlayUI() { menu.classList.add('hidden'); hud.classList.remove('hidden'); document.body.classList.add('playing'); }
-function exitPlayUI() { menu.classList.remove('hidden'); hud.classList.add('hidden'); document.body.classList.remove('playing'); setScope(false); }
+function exitPlayUI() { menu.classList.remove('hidden'); hud.classList.add('hidden'); document.body.classList.remove('playing'); setAim(false); }
 function startGame() {
   ensureAudio(); if (audioCtx.state === 'suspended') audioCtx.resume();
   if (isTouch) {
@@ -720,7 +811,7 @@ function update(dt) {
 
     let speed = player.crouch ? CROUCH_SPEED : (keys['ShiftLeft'] || keys['ShiftRight']) ? WALK_SPEED : RUN_SPEED;
     if (joyActive) speed *= Math.min(1, joyMag);   // analog throttle from joystick push
-    if (scoped) speed = Math.min(speed, WALK_SPEED);
+    if (scoped && curW().walkWhileAiming) speed = Math.min(speed, WALK_SPEED);
 
     const accel = player.onGround ? 1 : AIR_CTRL;
     const desired = wish.multiplyScalar(speed);
@@ -757,24 +848,29 @@ function update(dt) {
     player.pos.z = Math.max(-MAP.hd + 1.2, Math.min(MAP.hd - 1.2, player.pos.z));
   }
 
-  // apply camera position (eye) + recoil bob
-  recoilVel += -recoil * 40 * dt;   // spring
-  recoil += recoilVel * dt;
-  recoilVel *= (1 - Math.min(1, dt * 8));
-  recoil *= (1 - Math.min(1, dt * 3));
   const co = controls.getObject();
   co.position.set(player.pos.x, player.pos.y + player.eye, player.pos.z);
-  // recoil as pitch offset applied to camera
-  camera.rotation.x += 0; // handled below via viewGroup + slight look kick
-  // viewmodel recover
+
+  // continuous fire for automatic weapons while the trigger is held
+  if (firing && player.alive && curW().auto) fireOnce();
+
+  // aim recoil: layer onto the look, then auto-recover toward zero (delta-applied
+  // so it composes with mouse/touch look without fighting it)
+  const rc = Math.min(1, dt * curW().recover);
+  recPitch -= recPitch * rc; recYaw -= recYaw * rc;
+  const dP = recPitch - recAppP, dY = recYaw - recAppY;
+  camera.rotation.x += dP; camera.rotation.y += dY;
+  pitch += dP; yaw += dY;
+  recAppP = recPitch; recAppY = recYaw;
+
+  // viewmodel recover + sway/bob
   viewGroup.position.z += (-0.42 - viewGroup.position.z) * Math.min(1, dt * 10);
-  // weapon sway/bob
   const bob = player.onGround && (Math.abs(player.vel.x) + Math.abs(player.vel.z)) > 1 ? Math.sin(time * 10) * 0.012 : 0;
   viewGroup.position.y = -0.2 + bob;
   flashMat.opacity *= (1 - Math.min(1, dt * 18));
 
-  // reload finish
-  if (weapon.reloading && time >= weapon.reloadEnd) finishReload();
+  // reload finish (per active weapon)
+  if (curAmmo().reloading && time >= curAmmo().reloadEnd) finishReload();
 
   // ----- Bots -----
   const eyePos = co.position.clone();
@@ -866,28 +962,26 @@ function botCollide(bot) {
   }
 }
 
-// apply small look-recoil to camera pitch on shot
-let lastMagForRecoil = weapon.mag;
-function applyLookRecoil(dt) {
-  // subtle upward kick when recoilVel spikes
-}
 
 function animate() {
   requestAnimationFrame(animate);
   const dt = Math.min(0.05, clock.getDelta());
   if (isActive()) update(dt);
   // scope zoom
-  const targetFov = scoped ? SCOPE_FOV : BASE_FOV;
+  const targetFov = scoped ? curW().adsFov : BASE_FOV;
   camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 16);
   camera.updateProjectionMatrix();
   renderer.render(scene, camera);
 }
-updateHealth(); updateAmmo(); updateScore();
+updateHealth(); updateAmmo(); updateScore(); updateWeaponName();
 animate();
 
 // ---------- Diagnostics (used only by automated smoke test; harmless in play) ----------
-window.__diag = () => ({ bots: bots.length, aliveBots: bots.filter(b => b.alive).length, colliders: colliders.length, hp: player.hp });
-window.__setScope = setScope;
+window.__diag = () => ({ bots: bots.length, aliveBots: bots.filter(b => b.alive).length, colliders: colliders.length, hp: player.hp, weapon: curW().name, curKey, mag: curAmmo().mag, recoil: +recPitch.toFixed(3) });
+window.__switch = switchWeapon;
+window.__hold = (on) => { firing = !!on; };
+window.__advance = (n) => { for (let i = 0; i < n; i++) update(1 / 60); };   // pure loop steps (no injected fire/reload)
+window.__setScope = setAim;
 window.__yawProbe = () => yaw;
 window.__moveProbe = () => ({ x: moveVec.x, y: moveVec.y, mag: joyMag });
 window.__forceStep = (n) => {
@@ -895,7 +989,7 @@ window.__forceStep = (n) => {
     // exercise movement + shooting + bot AI paths without pointer lock
     keys['KeyW'] = i % 2 === 0; keys['KeyD'] = i % 3 === 0;
     if (i % 20 === 0) { wantJump = true; }
-    if (i % 15 === 0) { weapon.lastShot = -99; shoot(); }
+    if (i % 15 === 0) { curAmmo().lastShot = -99; fireOnce(); }
     if (i % 40 === 0) startReload();
     update(1 / 60);
   }

@@ -19,8 +19,9 @@ Sağ tık ile AWP scope:
 |-----|-------|
 | **W A S D** | Hareket |
 | **Fare** | Bak / nişan al |
-| **Sol Tık** | Ateş (AWP — bolt-action) |
-| **Sağ Tık** | Scope / zoom (basılı tut) |
+| **Sol Tık** | Ateş (basılı tut = sprey / AWP tek atış) |
+| **Sağ Tık** | Nişan / scope (basılı tut) |
+| **1 / 2 / Q** | Silah değiştir (AK-47 ↔ AWP) |
 | **R** | Şarjör değiştir |
 | **Shift** | Yürü (yavaş) |
 | **Space** | Zıpla (kasalara çık) |
@@ -47,7 +48,10 @@ Telefonda otomatik olarak dokunmatik kontroller ve tam ekran devreye girer:
 
 ## ⚙️ Özellikler
 
-- **AWP mekaniği:** scope zoom, bolt-action atış gecikmesi, recoil, namlu alevi, hitmarker
+- **İki silah:** **AK-47** (tam otomatik, sprey recoil, 30/90) ana silah + **AWP** (bolt-action, scope zoom,
+  tek atış yüksek hasar) yedek. `1`/`2`/`Q` veya mobil buton ile değiştir; her şarjör bağımsız.
+- **Ateş & recoil:** tam-otomatik sprey (tetik basılı), silaha göre hasar/yayılım, sprey recoil (tırmanır +
+  geri gelir), namlu alevi, hitmarker
 - **5 bot:** görüş hattı (line-of-sight) kontrolü, seni görünce ateş açma, yaklaşma/strafe, can barı, respawn
 - **Hangar harita:** konteynerler, kasa yığınları, rampalar, siperler — uzun snipe hatları + saklanma
 - **CS hissi:** prosedürel dokular, gölgeli ışıklandırma, tavan kirişlerinden ışık huzmeleri
