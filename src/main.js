@@ -365,6 +365,7 @@ let firing = false;                    // left mouse / fire button held
 // aim-recoil accumulators (layered on top of look; auto-recovers)
 let recPitch = 0, recYaw = 0, recAppP = 0, recAppY = 0;
 let fovKick = 0;        // brief FOV punch per shot
+let killFreeze = 0;     // micro hit-stop after a player kill (~40ms)
 let camShake = 0;       // camera roll shake when taking damage
 
 // ---------- Weapon viewmodels (box-built AK-47 + AWP) ----------
@@ -904,7 +905,7 @@ function killBot(bot, killer, headshot) {
   ];
   bot.respawnAt = time + 3.2;
   bot.deaths++;
-  if (killer === 'player') { stats.kills++; playerRoundKills++; teamScore.ct++; registerStreakKill(); }
+  if (killer === 'player') { stats.kills++; playerRoundKills++; teamScore.ct++; registerStreakKill(); killFreeze = 0.042; }
   else if (killer && killer.team) { killer.kills++; killer.roundKills = (killer.roundKills || 0) + 1; teamScore[killer.team]++; }
   updateScore();
   addKillFeed(killer === 'player' ? 'Sen' : (killer ? killer.name : '?'), bot.name,
@@ -1568,6 +1569,8 @@ function botCollide(bot) {
 function animate() {
   requestAnimationFrame(animate);
   const dt = Math.min(0.05, clock.getDelta());
+  // micro hit-stop: hold the world still for a few frames after a kill so it registers
+  if (killFreeze > 0) { killFreeze -= dt; renderer.render(scene, camera); return; }
   if (isActive()) update(dt);
   // scope zoom
   const targetFov = scoped ? curW().adsFov : BASE_FOV;

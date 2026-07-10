@@ -2,6 +2,10 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.4.11
+- **Kill hit-stop:** sen öldürünce dünya ~40 ms donar (render sürer, simülasyon durur) — vuruşun
+  'oturduğu' hissi. Çok kısa tutuldu; rahatsız ederse tek satırla kapatılabilir.
+
 ## v1.4.10
 - **Chromatic aberration flaşı:** hasar alınca ekran kenarlarında zıt kırmızı/cyan saçak bir an
   parlayıp söner (saf CSS — GPU maliyeti yok); mevcut kırmızı flaş ve sarsıntının üstüne biner.
