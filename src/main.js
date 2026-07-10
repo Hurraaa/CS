@@ -986,6 +986,9 @@ function damagePlayer(dmg, fromPos, attacker) {
   player.hp -= dmg;
   camShake = Math.min(1, camShake + 0.55);
   vibrate(25);
+  const ch = el('chroma');
+  ch.classList.add('flash');
+  clearTimeout(ch._t); ch._t = setTimeout(() => ch.classList.remove('flash'), 90);
   dmgflash.style.boxShadow = 'inset 0 0 160px 50px rgba(180,0,0,.55)';
   clearTimeout(dmgflash._t); dmgflash._t = setTimeout(() => dmgflash.style.boxShadow = 'inset 0 0 160px 40px rgba(180,0,0,0)', 120);
   // directional hurt arc: bearing of the attacker relative to the view (0 = dead ahead)

@@ -2,6 +2,10 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.4.10
+- **Chromatic aberration flaşı:** hasar alınca ekran kenarlarında zıt kırmızı/cyan saçak bir an
+  parlayıp söner (saf CSS — GPU maliyeti yok); mevcut kırmızı flaş ve sarsıntının üstüne biner.
+
 ## v1.4.9
 - **Silah sesi katmanı:** her atışa 50 ms gecikmeli, alçak geçiren süzgeçli 'hangar ekosu' kuyruğu
   eklendi — atışlar daha gövdeli ve mekân hissi veriyor.
