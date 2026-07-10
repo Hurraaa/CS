@@ -2,6 +2,10 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.4.7
+- **Round MVP:** round bitiş banner'ında o round'da en çok kill alan oyuncunun adı (⭐ MVP: … ),
+  oyuncu dahil; round başına kill sayaçları reset'te sıfırlanır.
+
 ## v1.4.6
 - **Öldürme serisi:** 4 sn içinde üst üste kill → ekranda DOUBLE/TRIPLE/QUAD KILL / RAMPAGE! duyurusu
   (pop animasyonlu) + seri uzunluğuna göre yükselen perdeli jingle.

@@ -892,8 +892,8 @@ function killBot(bot, killer, headshot) {
   ];
   bot.respawnAt = time + 3.2;
   bot.deaths++;
-  if (killer === 'player') { stats.kills++; teamScore.ct++; registerStreakKill(); }
-  else if (killer && killer.team) { killer.kills++; teamScore[killer.team]++; }
+  if (killer === 'player') { stats.kills++; playerRoundKills++; teamScore.ct++; registerStreakKill(); }
+  else if (killer && killer.team) { killer.kills++; killer.roundKills = (killer.roundKills || 0) + 1; teamScore[killer.team]++; }
   updateScore();
   addKillFeed(killer === 'player' ? 'Sen' : (killer ? killer.name : '?'), bot.name,
     killer === 'player' ? 'player' : (killer ? killer.team : 't'), headshot);
@@ -992,7 +992,7 @@ function damagePlayer(dmg, fromPos, attacker) {
 function playerDie(attacker) {
   player.alive = false;
   stats.deaths++; teamScore.t++;
-  if (attacker && attacker.team) attacker.kills++;
+  if (attacker && attacker.team) { attacker.kills++; attacker.roundKills = (attacker.roundKills || 0) + 1; }
   updateScore();
   const kn = attacker && attacker.name ? attacker.name : 'BOT';
   addKillFeed(kn, 'Sen', 't');
@@ -1026,6 +1026,7 @@ const teamScore = { ct: 0, t: 0 };              // kills this round, per team
 const ROUND_LIMIT = 20;                         // first team to this many kills wins the round
 const roundsWon = { ct: 0, t: 0 };
 let roundOver = false, roundResetAt = 0;
+let playerRoundKills = 0;
 const el = id => document.getElementById(id);
 
 function startRoundEnd(winner) {
@@ -1035,11 +1036,17 @@ function startRoundEnd(winner) {
   const txt = el('roundBannerText');
   txt.textContent = winner === 'ct' ? "TAKIMIN ROUND'U ALDI 🏆" : "DÜŞMAN ROUND'U ALDI";
   txt.className = 'big ' + winner;
+  // round MVP: highest round-kill count among everyone (player included)
+  let mvpName = 'Sen', mvpK = playerRoundKills;
+  for (const b of bots) if ((b.roundKills || 0) > mvpK) { mvpK = b.roundKills; mvpName = b.name; }
+  el('roundMvp').textContent = mvpK > 0 ? `⭐ MVP: ${mvpName} (${mvpK} kill)` : '';
   el('roundBanner').classList.add('show');
 }
 function resetRound() {
   roundOver = false;
   teamScore.ct = 0; teamScore.t = 0;
+  playerRoundKills = 0;
+  for (const b of bots) b.roundKills = 0;
   el('roundBanner').classList.remove('show');
   for (const b of bots) spawnBot(b);
   respawnPlayer(); refillAmmo(); updateHealth(); updateScore();
