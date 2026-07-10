@@ -1096,7 +1096,12 @@ function killBot(bot, killer, headshot) {
   ];
   bot.respawnAt = time + 3.2;
   bot.deaths++;
-  if (killer === 'player') { stats.kills++; playerRoundKills++; teamScore.ct++; registerStreakKill(); killFreeze = 0.042; }
+  if (killer === 'player') {
+    stats.kills++; playerRoundKills++; teamScore.ct++; registerStreakKill(); killFreeze = 0.042;
+    hs.total++;
+    if (playerRoundKills > hs.round) hs.round = playerRoundKills;
+    saveHS();
+  }
   else if (killer && killer.team) { killer.kills++; killer.roundKills = (killer.roundKills || 0) + 1; teamScore[killer.team]++; }
   updateScore();
   addKillFeed(killer === 'player' ? 'Sen' : (killer ? killer.name : '?'), bot.name,
@@ -1235,6 +1240,18 @@ const ROUND_LIMIT = 20;                         // first team to this many kills
 const roundsWon = { ct: 0, t: 0 };
 let roundOver = false, roundResetAt = 0;
 let playerRoundKills = 0;
+const hs = {
+  round: +localStorage.getItem('awp.hs.round') || 0,
+  streak: +localStorage.getItem('awp.hs.streak') || 0,
+  total: +localStorage.getItem('awp.hs.total') || 0,
+};
+function saveHS() {
+  localStorage.setItem('awp.hs.round', hs.round);
+  localStorage.setItem('awp.hs.streak', hs.streak);
+  localStorage.setItem('awp.hs.total', hs.total);
+  const e = el('hsLine');
+  if (e) e.textContent = `🏅 Rekorlar — round: ${hs.round} kill · seri: ${hs.streak} · toplam: ${hs.total}`;
+}
 const el = id => document.getElementById(id);
 
 function startRoundEnd(winner) {
@@ -1287,6 +1304,7 @@ function registerStreakKill() {
   killTimes.push(time);
   killTimes = killTimes.filter(t => time - t < 4);
   const n = killTimes.length;
+  if (n > hs.streak) { hs.streak = n; saveHS(); }
   if (n < 2) return;
   const s = el('streak');
   s.textContent = STREAK_TEXT[n] || 'RAMPAGE!';
@@ -1797,7 +1815,7 @@ function animate() {
   } else if (camera.rotation.z !== 0) camera.rotation.z = 0;
   renderer.render(scene, camera);
 }
-updateHealth(); updateAmmo(); updateScore(); updateWeaponName();
+updateHealth(); updateAmmo(); updateScore(); updateWeaponName(); saveHS();
 animate();
 
 // ---------- Diagnostics (used only by automated smoke test; harmless in play) ----------

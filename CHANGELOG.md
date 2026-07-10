@@ -2,6 +2,10 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.5.3
+- **Rekor kaydı:** en iyi round (kill), en uzun öldürme serisi ve toplam kill localStorage'da tutulur;
+  menüde 🏅 Rekorlar satırında gösterilir, her kill'de anında güncellenir.
+
 ## v1.5.2
 - **Pathfinding (A*):** 2 m hücreli nav-grid + köşe-kesmesiz A*; botlar konteyner/kasa kümelerinin
   etrafından gerçek rotayla dolanır (düz hat açıksa direkt yürür). Devriye + uzak-yaklaşma bu rotayı
