@@ -2,6 +2,64 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.4.13
+- **Antrenman poligonu:** menüde 🎯 ANTRENMAN — botlar sabit hedef olur (AI/ateş yok), oyuncu
+  ölümsüz, round sistemi kapalı. Isınma için ideal; Esc ile menüye dön.
+
+## v1.4.12
+- **Dinamik ambiyans:** iki detune testereli osilatörden alçak bir dron; çatışma yoğunlaştıkça
+  (yakın zamandaki atış sayısına göre) hafifçe kabarır, sessizlikte ~6 sn'de söner. Ses kapalıyken sıfır.
+
+## v1.4.11
+- **Kill hit-stop:** sen öldürünce dünya ~40 ms donar (render sürer, simülasyon durur) — vuruşun
+  'oturduğu' hissi. Çok kısa tutuldu; rahatsız ederse tek satırla kapatılabilir.
+
+## v1.4.10
+- **Chromatic aberration flaşı:** hasar alınca ekran kenarlarında zıt kırmızı/cyan saçak bir an
+  parlayıp söner (saf CSS — GPU maliyeti yok); mevcut kırmızı flaş ve sarsıntının üstüne biner.
+
+## v1.4.9
+- **Silah sesi katmanı:** her atışa 50 ms gecikmeli, alçak geçiren süzgeçli 'hangar ekosu' kuyruğu
+  eklendi — atışlar daha gövdeli ve mekân hissi veriyor.
+
+## v1.4.8
+- **Bot ayak sesleri:** 14 m içindeki hareket hâlindeki botların adımları duyulur (mesafeyle kısılır)
+  — düşmanın köşeden yaklaştığını duymak artık mümkün (CS taktik derinliği).
+
+## v1.4.7
+- **Round MVP:** round bitiş banner'ında o round'da en çok kill alan oyuncunun adı (⭐ MVP: … ),
+  oyuncu dahil; round başına kill sayaçları reset'te sıfırlanır.
+
+## v1.4.6
+- **Öldürme serisi:** 4 sn içinde üst üste kill → ekranda DOUBLE/TRIPLE/QUAD KILL / RAMPAGE! duyurusu
+  (pop animasyonlu) + seri uzunluğuna göre yükselen perdeli jingle.
+
+## v1.4.5
+- **Yarı-ragdoll ölüm:** botlar devrilirken kollar/bacaklar/gövde rastgele açısal hızla savrulur ve
+  yere inerken yatışır; respawn'da uzuv duruşları sıfırlanır.
+
+## v1.4.4
+- **Mobil titreşim:** telefonda isabet 15ms, kill 45ms, hasar alma 25ms haptik geri bildirim
+  (navigator.vibrate destekleyen cihazlarda; iOS Safari desteklemez, Android'de çalışır).
+
+## v1.4.3
+- **Mermi izleri (decal):** duvara/kasaya isabet eden mermiler 10 sn kalan koyu delik izi bırakır
+  (8. sn'den itibaren solar; en fazla 40 iz — eskisi silinir; z-fight yok: polygonOffset).
+
+## v1.4.2
+- **Kovan fırlatma:** her atışta sağa pirinç kovan fırlar, yerde bir kez sekip 'tink' sesi çıkarır
+  (paylaşımlı geometri/materyal — maliyetsiz). Tam scope'tayken (AWP) kovan yok.
+
+## v1.4.1
+- **Silah & kamera hissi:** her atışta kısa FOV punch (AWP'de sert, AK'da hafif — scope'tayken kapalı);
+  hasar alınca kamera kısa süre sarsılır (roll — nişanı bozmaz, hızla söner); reload sırasında silah
+  aşağı iner ve öne eğilir (dolum animasyonu); AWP tracer'ı kalın-parlak mavi ve uzun ömürlü, AK kısa.
+
+## v1.4.0
+- **Vuruş hissi paketi:** gövde isabetinde etli 'thwack' sesi (headshot 'tink' zaten vardı); vurulan
+  bot ~0.2 sn irkiliyor (gövde sarsılması); isabet noktasında yukarı süzülüp kaybolan **hasar sayıları**
+  (gövde beyaz / kafa sarı / öldürücü kırmızı-büyük); kan efekti yoğunlaştı (22 parçacık, iki ton).
+
 ## v1.3.11
 - **Mobil performans:** telefonda pixelRatio 1.5 ile sınırlandı, gölge haritası 2048→1024
   (dolgu maliyeti ciddi düşer, görsel fark minimal). README/CLAUDE.md/PLAN.md güncellendi.

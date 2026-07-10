@@ -96,6 +96,12 @@
   #scoreboard tr.me td:first-child { color: #3dff8b; }
   #scorebar { pointer-events: auto; cursor: pointer; }
 
+  /* Floating damage numbers */
+  .dmgnum { position: absolute; transform: translate(-50%,-50%); font-size: 17px; font-weight: 800; color: #ffffff; text-shadow: 0 1px 3px #000, 0 0 8px rgba(255,255,255,.25); animation: dmgFloat .72s ease-out forwards; pointer-events: none; font-family: Arial, sans-serif; }
+  .dmgnum.head { color: #ffd94d; font-size: 20px; }
+  .dmgnum.kill { color: #ff5c4d; font-size: 23px; }
+  @keyframes dmgFloat { 0% { opacity: 0; margin-top: 4px; } 12% { opacity: 1; } 100% { opacity: 0; margin-top: -34px; } }
+
   /* Death overlay */
   #deathOverlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: radial-gradient(circle at center, rgba(60,0,0,.35), rgba(15,0,0,.72)); opacity: 0; pointer-events: none; transition: opacity .3s; }
   #deathOverlay.show { opacity: 1; }
@@ -103,12 +109,18 @@
   #deathOverlay .dead-sub { font-size: 16px; opacity: .85; }
   #deathOverlay .dead-hint { font-size: 12px; letter-spacing: 3px; opacity: .5; margin-top: 6px; }
 
+  /* Kill streak announcement */
+  #streak { position: absolute; left: 50%; top: 36%; transform: translate(-50%,-50%); font-size: 30px; font-weight: 900; letter-spacing: 4px; color: #ffd94d; text-shadow: 0 2px 10px rgba(0,0,0,.85), 0 0 24px rgba(255,217,77,.35); opacity: 0; pointer-events: none; }
+  #streak.pop { animation: streakPop 1.5s ease-out forwards; }
+  @keyframes streakPop { 0% { opacity: 0; transform: translate(-50%,-50%) scale(.6); } 12% { opacity: 1; transform: translate(-50%,-50%) scale(1.12); } 22% { transform: translate(-50%,-50%) scale(1); } 78% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%,-50%) scale(1); } }
+
   /* Round banner */
   #roundBanner { position: absolute; left: 50%; top: 30%; transform: translate(-50%,-50%) scale(.9); text-align: center; opacity: 0; pointer-events: none; transition: opacity .25s, transform .25s; }
   #roundBanner.show { opacity: 1; transform: translate(-50%,-50%) scale(1); }
   #roundBanner .big { font-size: 42px; font-weight: 900; letter-spacing: 2px; text-shadow: 0 2px 12px rgba(0,0,0,.8); }
   #roundBanner .big.ct { color: #6db3ff; }
   #roundBanner .big.t { color: #ff7a5c; }
+  #roundBanner .mvp { margin-top: 10px; font-size: 17px; font-weight: 700; color: #ffd94d; text-shadow: 0 1px 6px rgba(0,0,0,.8); }
   #roundBanner .small { margin-top: 8px; font-size: 13px; letter-spacing: 3px; opacity: .7; }
 
   /* Damage flash */
@@ -119,6 +131,9 @@
     50% { box-shadow: inset 0 0 170px 55px rgba(180,0,0,.5); }
   }
   #hurtdir { position: absolute; inset: 0; pointer-events: none; }
+  /* cheap chromatic-aberration flash: opposing red/cyan edge fringes */
+  #chroma { position: absolute; inset: 0; pointer-events: none; opacity: 0; transition: opacity .16s ease-out; box-shadow: inset 14px 0 60px -18px rgba(255,30,60,.55), inset -14px 0 60px -18px rgba(0,215,255,.5), inset 0 10px 50px -20px rgba(255,30,60,.35); }
+  #chroma.flash { opacity: 1; transition: opacity .02s; }
   .hurt-arc { position: absolute; left: 50%; top: 50%; width: 190px; height: 190px; margin: -95px 0 0 -95px; border-radius: 50%; border: 5px solid transparent; border-top-color: rgba(255,55,45,.9); animation: hurtFade .9s ease-out forwards; }
   @keyframes hurtFade { from { opacity: 1; transform: scale(.92); } to { opacity: 0; transform: scale(1.15); } }
 
@@ -157,6 +172,7 @@
   .card .tag { font-size: 12px; letter-spacing: 4px; opacity: .55; margin-bottom: 20px; }
   .card .play { display: inline-block; margin: 8px 0 18px; padding: 13px 40px; font-size: 17px; font-weight: 700; letter-spacing: 2px; color: #06110a; background: #3dff8b; border-radius: 8px; cursor: pointer; pointer-events: auto; border: none; transition: transform .08s, filter .08s; }
   .card .play:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .card .play.alt { background: transparent; color: #3dff8b; border: 1px solid rgba(61,255,139,.5); font-size: 14px; padding: 10px 26px; margin-left: 10px; }
   .keys { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 13px; text-align: left; margin-top: 6px; opacity: .82; }
   .keys b { color: #3dff8b; font-family: monospace; font-weight: 700; }
   #menu .hint { font-size: 11px; opacity: .4; margin-top: 16px; letter-spacing: 1px; }
@@ -230,10 +246,14 @@
   </div>
 
   <div id="dmgflash"></div>
+  <div id="chroma"></div>
   <div id="hurtdir"></div>
+
+  <div id="streak"></div>
 
   <div id="roundBanner">
     <div class="big" id="roundBannerText"></div>
+    <div class="mvp" id="roundMvp"></div>
     <div class="small">yeni round başlıyor…</div>
   </div>
 
@@ -269,6 +289,7 @@
     <h1><span class="awp">AWP</span> HANGAR</h1>
     <div class="tag">5v5 TAKIM DEATHMATCH · CS TARZI</div>
     <button class="play" id="playBtn">OYNA ▸</button>
+    <button class="play alt" id="practiceBtn">🎯 ANTRENMAN</button>
     <div class="keys" id="keysDesktop">
       <b>W A S D</b><span>Hareket</span>
       <b>Fare</b><span>Bak</span>
