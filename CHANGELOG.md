@@ -2,6 +2,10 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.4.9
+- **Silah sesi katmanı:** her atışa 50 ms gecikmeli, alçak geçiren süzgeçli 'hangar ekosu' kuyruğu
+  eklendi — atışlar daha gövdeli ve mekân hissi veriyor.
+
 ## v1.4.8
 - **Bot ayak sesleri:** 14 m içindeki hareket hâlindeki botların adımları duyulur (mesafeyle kısılır)
   — düşmanın köşeden yaklaştığını duymak artık mümkün (CS taktik derinliği).

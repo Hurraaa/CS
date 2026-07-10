@@ -232,6 +232,18 @@ function playShot(big = true, vol = 0.5) {
     og.gain.setValueAtTime(vol * 0.9, t); og.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
     osc.connect(og); og.connect(audioCtx.destination); osc.start(t); osc.stop(t + 0.2);
   }
+  // hangar echo tail: delayed low-passed rumble gives shots body and a sense of space
+  {
+    const eDur = 0.34;
+    const eBuf = audioCtx.createBuffer(1, audioCtx.sampleRate * eDur, audioCtx.sampleRate);
+    const ed = eBuf.getChannelData(0);
+    for (let i = 0; i < ed.length; i++) ed[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / ed.length, 1.8);
+    const eSrc = audioCtx.createBufferSource(); eSrc.buffer = eBuf;
+    const ef = audioCtx.createBiquadFilter(); ef.type = 'lowpass';
+    ef.frequency.setValueAtTime(620, t + 0.05); ef.frequency.exponentialRampToValueAtTime(180, t + 0.05 + eDur);
+    const eg = audioCtx.createGain(); eg.gain.setValueAtTime(vol * 0.3, t + 0.05); eg.gain.exponentialRampToValueAtTime(0.0008, t + 0.05 + eDur);
+    eSrc.connect(ef); ef.connect(eg); eg.connect(audioCtx.destination); eSrc.start(t + 0.05); eSrc.stop(t + 0.05 + eDur);
+  }
 }
 function playClick() {
   if (!audioCtx || !settings.sound) return;
