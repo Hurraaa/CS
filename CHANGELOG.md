@@ -2,6 +2,11 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.4.1
+- **Silah & kamera hissi:** her atışta kısa FOV punch (AWP'de sert, AK'da hafif — scope'tayken kapalı);
+  hasar alınca kamera kısa süre sarsılır (roll — nişanı bozmaz, hızla söner); reload sırasında silah
+  aşağı iner ve öne eğilir (dolum animasyonu); AWP tracer'ı kalın-parlak mavi ve uzun ömürlü, AK kısa.
+
 ## v1.4.0
 - **Vuruş hissi paketi:** gövde isabetinde etli 'thwack' sesi (headshot 'tink' zaten vardı); vurulan
   bot ~0.2 sn irkiliyor (gövde sarsılması); isabet noktasında yukarı süzülüp kaybolan **hasar sayıları**

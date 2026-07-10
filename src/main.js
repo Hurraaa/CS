@@ -352,6 +352,8 @@ const curAmmo = () => ammoState[curKey];
 let firing = false;                    // left mouse / fire button held
 // aim-recoil accumulators (layered on top of look; auto-recovers)
 let recPitch = 0, recYaw = 0, recAppP = 0, recAppY = 0;
+let fovKick = 0;        // brief FOV punch per shot
+let camShake = 0;       // camera roll shake when taking damage
 
 // ---------- Weapon viewmodels (box-built AK-47 + AWP) ----------
 const viewGroup = new THREE.Group();
@@ -723,10 +725,11 @@ function fireOnce() {
   if (a.mag <= 0) { startReload(); return; }
   a.lastShot = time; a.mag--; updateAmmo();
   ensureAudio(); playShot(w.sndBig, w.sndVol);
-  // viewmodel kick + aim recoil
+  // viewmodel kick + aim recoil + a brief FOV punch for weight
   viewGroup.position.z = -0.42 + w.kick * 0.7;
   recPitch += w.recoilUp;
   recYaw += (Math.random() * 2 - 1) * w.recoilSide;
+  if (!scoped) fovKick += curKey === 'awp' ? 2.4 : 0.9;
 
   // bullet spread: tighter when aiming
   const spread = scoped ? w.spreadAds : w.spreadHip;
@@ -749,7 +752,8 @@ function fireOnce() {
       spawnImpact(h.point, h.face ? h.face.normal : null);
     }
   }
-  spawnTracer(raycaster.ray.origin, raycaster.ray.direction, hits.length ? hits[0].distance : 200);
+  spawnTracer(raycaster.ray.origin, raycaster.ray.direction, hits.length ? hits[0].distance : 200,
+    curKey === 'awp' ? { color: 0xcfe4ff, life: 0.16, opacity: 0.95 } : { life: 0.07 });
 }
 
 function showHitmarker(kill, head) {
@@ -778,13 +782,14 @@ function finishReload() {
 
 // ---------- Effects ----------
 const effects = [];
-function spawnTracer(origin, dir, dist) {
+function spawnTracer(origin, dir, dist, opts = {}) {
   const start = origin.clone().add(dir.clone().multiplyScalar(0.6));
   const end = origin.clone().add(dir.clone().multiplyScalar(dist));
   const geo = new THREE.BufferGeometry().setFromPoints([start, end]);
-  const mat = new THREE.LineBasicMaterial({ color: 0xfff2c0, transparent: true, opacity: 0.85 });
+  const mat = new THREE.LineBasicMaterial({ color: opts.color ?? 0xfff2c0, transparent: true, opacity: opts.opacity ?? 0.85 });
   const line = new THREE.Line(geo, mat); scene.add(line);
-  effects.push({ obj: line, mat, life: 0.08, max: 0.08, type: 'fade' });
+  const life = opts.life ?? 0.08;
+  effects.push({ obj: line, mat, life, max: life, type: 'fade' });
 }
 function spawnImpact(point, normal) {
   const geo = new THREE.BufferGeometry();
@@ -918,6 +923,7 @@ function damagePlayer(dmg, fromPos, attacker) {
   if (!player.alive) return;
   if (time < (player.protectUntil || 0)) return;   // brief spawn protection
   player.hp -= dmg;
+  camShake = Math.min(1, camShake + 0.55);
   dmgflash.style.boxShadow = 'inset 0 0 160px 50px rgba(180,0,0,.55)';
   clearTimeout(dmgflash._t); dmgflash._t = setTimeout(() => dmgflash.style.boxShadow = 'inset 0 0 160px 40px rgba(180,0,0,0)', 120);
   // directional hurt arc: bearing of the attacker relative to the view (0 = dead ahead)
@@ -1221,10 +1227,12 @@ function update(dt) {
   pitch += dP; yaw += dY;
   recAppP = recPitch; recAppY = recYaw;
 
-  // viewmodel recover + sway/bob
+  // viewmodel recover + sway/bob + reload dip (gun drops and tilts while reloading)
   viewGroup.position.z += (-0.42 - viewGroup.position.z) * Math.min(1, dt * 10);
   const bob = player.onGround && (Math.abs(player.vel.x) + Math.abs(player.vel.z)) > 1 ? Math.sin(time * 10) * 0.012 : 0;
-  viewGroup.position.y = -0.2 + bob;
+  const dip = curAmmo().reloading ? 1 : 0;
+  viewGroup.position.y += ((-0.2 - dip * 0.15 + bob) - viewGroup.position.y) * Math.min(1, dt * 9);
+  viewGroup.rotation.x += ((dip * 0.4) - viewGroup.rotation.x) * Math.min(1, dt * 9);
 
   // reload finish (per active weapon)
   if (curAmmo().reloading && time >= curAmmo().reloadEnd) finishReload();
@@ -1435,8 +1443,14 @@ function animate() {
   if (isActive()) update(dt);
   // scope zoom
   const targetFov = scoped ? curW().adsFov : BASE_FOV;
-  camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 16);
+  camera.fov += (targetFov - camera.fov) * Math.min(1, dt * 16) + fovKick * dt * 60;
+  fovKick *= Math.max(0, 1 - dt * 14);
   camera.updateProjectionMatrix();
+  // damage-taken camera roll shake (decays fast; zeroed so aim is untouched at rest)
+  if (camShake > 0.002) {
+    camera.rotation.z = (Math.random() - 0.5) * camShake * 0.06;
+    camShake *= Math.max(0, 1 - dt * 7);
+  } else if (camera.rotation.z !== 0) camera.rotation.z = 0;
   renderer.render(scene, camera);
 }
 updateHealth(); updateAmmo(); updateScore(); updateWeaponName();
