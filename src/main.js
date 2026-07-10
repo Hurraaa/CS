@@ -366,13 +366,22 @@ const WEAPONS = {
     recoilUp: 0.05, recoilSide: 0.012, recover: 3.5, kick: 0.12,
     spreadHip: 0.02, spreadAds: 0.0, sndBig: true, sndVol: 0.5,
   },
+  deagle: {
+    key: 'deagle', name: 'DEAGLE', auto: false,
+    magMax: 7, reserveMax: 35, dmgBody: 53, dmgHead: 212,
+    fireDelay: 0.28, reloadTime: 2.0, scope: false, adsFov: 62, walkWhileAiming: false,
+    recoilUp: 0.028, recoilSide: 0.01, recover: 5.5, kick: 0.09,
+    spreadHip: 0.02, spreadAds: 0.007, sndBig: true, sndVol: 0.4,
+  },
 };
 // Per-weapon ammo/reload runtime, kept independently so switching preserves each mag.
 const ammoState = {
   ak: { mag: 30, reserve: 90, lastShot: -99, reloading: false, reloadEnd: 0 },
   awp: { mag: 10, reserve: 30, lastShot: -99, reloading: false, reloadEnd: 0 },
+  deagle: { mag: 7, reserve: 35, lastShot: -99, reloading: false, reloadEnd: 0 },
 };
 let curKey = 'ak';                     // start on the rifle — spray first
+let prevKey = 'awp';                   // Q quick-switches to the previous weapon
 const curW = () => WEAPONS[curKey];
 const curAmmo = () => ammoState[curKey];
 let firing = false;                    // left mouse / fire button held
@@ -423,11 +432,27 @@ const akModel = new THREE.Group();
 akModel.visible = false;
 viewGroup.add(akModel);
 
+// Desert Eagle model (chunky slide + grip)
+const deagleModel = new THREE.Group();
+{
+  const steel = new THREE.MeshStandardMaterial({ color: 0x8d9298, roughness: 0.35, metalness: 0.8 });
+  const black = new THREE.MeshStandardMaterial({ color: 0x1a1b1d, roughness: 0.55, metalness: 0.5 });
+  const slide = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.09, 0.42), steel); slide.position.set(0, 0.05, -0.3);
+  const frame = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, 0.36), black); frame.position.set(0, -0.02, -0.27);
+  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.055, 0.17, 0.09), black); grip.position.set(0, -0.12, -0.12); grip.rotation.x = -0.22;
+  const sightF = new THREE.Mesh(new THREE.BoxGeometry(0.015, 0.03, 0.02), black); sightF.position.set(0, 0.11, -0.49);
+  deagleModel.add(slide, frame, grip, sightF);
+  deagleModel.position.set(0, -0.05, 0.05);
+}
+deagleModel.visible = false;
+viewGroup.add(deagleModel);
+
 viewGroup.traverse(m => { if (m.isMesh) m.castShadow = false; });
 
 function updateViewmodel() {
   awpModel.visible = curKey === 'awp';
   akModel.visible = curKey === 'ak';
+  deagleModel.visible = curKey === 'deagle';
 }
 updateViewmodel();
 
@@ -592,7 +617,8 @@ addEventListener('keydown', e => {
   if (e.code === 'KeyR') startReload();
   if (e.code === 'Digit1') switchWeapon('ak');
   if (e.code === 'Digit2') switchWeapon('awp');
-  if (e.code === 'KeyQ') switchWeapon(curKey === 'ak' ? 'awp' : 'ak');
+  if (e.code === 'Digit3') switchWeapon('deagle');
+  if (e.code === 'KeyQ') switchWeapon(prevKey);
   if (e.code === 'KeyF') toggleAllyMode();
   if (['ControlLeft','ControlRight'].includes(e.code)) e.preventDefault();
 });
@@ -715,7 +741,9 @@ bindBtn('btnScope', (b) => { setAim(!scoped); b.classList.toggle('on', scoped); 
 bindBtn('btnReload', () => startReload());
 bindBtn('btnJump', () => { wantJump = true; });
 bindBtn('btnCrouch', (b) => { mCrouch = !mCrouch; b.classList.toggle('on', mCrouch); });
-bindBtn('btnSwap', () => switchWeapon(curKey === 'ak' ? 'awp' : 'ak'));
+const WEAPON_CYCLE = ['ak', 'awp', 'deagle'];
+const nextWeaponKey = () => WEAPON_CYCLE[(WEAPON_CYCLE.indexOf(curKey) + 1) % WEAPON_CYCLE.length];
+bindBtn('btnSwap', () => switchWeapon(nextWeaponKey()));
 bindBtn('btnSquad', () => toggleAllyMode());
 
 function setAim(on) {
@@ -731,10 +759,11 @@ function setAim(on) {
 function updateWeaponName() {
   el('weaponName').textContent = curW().name;
   const sb = document.getElementById('btnSwap');
-  if (sb) sb.textContent = curKey === 'ak' ? 'AWP' : 'AK';   // label shows the gun you'll switch TO
+  if (sb) sb.textContent = WEAPONS[nextWeaponKey()].name.split('-')[0];   // label shows the gun you'll switch TO
 }
 function switchWeapon(key) {
   if (key === curKey || !WEAPONS[key]) return;
+  prevKey = curKey;
   const a = curAmmo();
   if (a.reloading) { a.reloading = false; document.getElementById('ammo').classList.remove('reloading'); }
   setAim(false);

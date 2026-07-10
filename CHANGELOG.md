@@ -2,6 +2,11 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.5.0
+- **Desert Eagle:** üçüncü silah — 7/35 mermi, tek atış 53 gövde / 212 kafa hasarı, 0.28 sn atış aralığı.
+  Tuş: **3**; **Q** artık CS gibi bir önceki silaha hızlı geçiş; mobil buton cephanelikte sıradaki silaha
+  döner (etiket sıradakini gösterir). Çelik sürgülü tabanca viewmodel'i.
+
 ## v1.4.13
 - **Antrenman poligonu:** menüde 🎯 ANTRENMAN — botlar sabit hedef olur (AI/ateş yok), oyuncu
   ölümsüz, round sistemi kapalı. Isınma için ideal; Esc ile menüye dön.
