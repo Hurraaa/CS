@@ -2,6 +2,57 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.3.11
+- **Mobil performans:** telefonda pixelRatio 1.5 ile sınırlandı, gölge haritası 2048→1024
+  (dolgu maliyeti ciddi düşer, görsel fark minimal). README/CLAUDE.md/PLAN.md güncellendi.
+
+## v1.3.10
+- **Ölüm ekranı:** ölünce kırmızı vinyetli 'ÖLDÜN' + seni öldüren botun adı; respawn'da kaybolur.
+- **Spawn koruması:** yeniden doğduktan sonra 2 sn hasar alınmaz (toast ile bildirilir).
+
+## v1.3.9
+- **Ses cilası:** koşarken/yürürken tempolu ayak sesleri (hıza göre kadans, değişen perde);
+  seni ıskalayan yakın mermilerde kulak dibinden 'vızz' geçiş sesi. CHANGELOG sıralaması düzeltildi.
+
+## v1.3.8
+- **Müttefik komutu:** F (mobilde TAKİP butonu) ile 'takip et / serbest dolaş' arasında geçiş.
+  Takipte müttefikler etrafında formasyon tutar ve yakın koruma yapar (25m içindeki düşmanla savaşır,
+  uzaktakini bırakıp sana döner). Ekranda kısa bilgi toast'u.
+
+## v1.3.7
+- **Bot zorluğu:** menüde Kolay/Orta/Zor seçimi (localStorage kalıcı). Yalnız sana karşı isabet,
+  hasar ve atış temposunu ölçekler — bot-vs-bot dengesi bozulmaz.
+
+## v1.3.6
+- **Ayarlar menüsü:** hassasiyet slider'ı (0.3–2.0, fare + dokunmatik bakışa uygulanır) ve ses aç/kapa.
+  İkisi de localStorage'da kalıcı — sayfa yenilense de korunur.
+
+## v1.3.5
+- **Dinamik nişangah:** sprey recoil'i ve hareket hâlinde nişangah açılır, durunca toparlanır
+  (isabetsizlik hissi CS gibi). **Reload barı:** cephane göstergesinin altında dolum ilerleme çubuğu.
+
+## v1.3.4
+- **Headshot geri bildirimi:** kafadan vuruşta sarı hitmarker + metalik 'tink' sesi; kill feed'de 💀
+  ikonu. **Kill onay sesi:** sen öldürünce iki tonlu kısa jingle (headshot'ta daha tiz).
+
+## v1.3.3
+- **Hasar yön göstergesi:** vurulunca ekran ortasında, saldırganın yönünü gösteren kırmızı kavis belirir
+  (bakışa göre döner, 0.9 sn'de solar). **Düşük can vinyeti:** can ≤30 iken kalp atışı gibi nabızlanan
+  kırmızı kenar karartması.
+
+## v1.3.2
+- **Radar:** sol üstte bakış yönüne dönen CS tarzı radar. Müttefikler hep görünür (mavi); düşmanlar
+  yalnız görüş hattına girince ~1.6 sn 'spotted' kalır (kırmızı). Ortada yeşil oyuncu oku.
+
+## v1.3.1
+- **Skor tablosu:** Tab basılı tut (mobilde skorbara dokun) → tüm 10 oyuncunun K/D tablosu, takım
+  renkleriyle, kill sayısına göre sıralı; sen yeşil vurgulu. Botlar artık kendi K/D'sini takip ediyor.
+
+## v1.3.0
+- **Round sistemi:** 20 kill'e ulaşan takım round'u kazanır — ekran ortasında takım renkli banner,
+  3.5 sn sonra skorlar sıfırlanır, herkes yeniden doğar. Skorbarda round sayacı (🏆 1 - 0). Round
+  bittiğinde ateş kilitlenir (oyuncu + botlar).
+
 ## v1.2.0
 - **5v5 takım deathmatch:** Sen + 4 müttefik bot (CT, mavi) vs 5 düşman bot (T, kırmızı). Takımlar kendi
   yarı sahasında doğar (CT güney / T kuzey); botlar **birbiriyle de çatışır** (hedef seçimi ~5Hz: en yakın

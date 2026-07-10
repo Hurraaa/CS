@@ -11,10 +11,10 @@ Yalnız **kalıcı kural + sabit mimari + dosya haritası + DOKUNMA listesi**. C
 Derin dersler: `docs/CLAUDE_THREEJS_MOBIL_OYUN_REHBERI.md` (gerekince aç).
 
 ## 🎯 Güncel durum
-v1.2.0 — Oynanır. **5v5 takım deathmatch:** sen + 4 müttefik (CT mavi) vs 5 düşman (T kırmızı); botlar
-birbiriyle de savaşır, dost ateşi kapalı. İki silah: **AK-47** (auto, sprey) ana + **AWP** (bolt, scope)
-yedek; 1/2/Q + mobil buton. Eklemli bot rig'i (elde tüfek, nişan pozu, yürüme/ölüm animasyonu, isimli can
-barı). Mobil dokunmatik + tam ekran. iOS-güvenli IIFE build (esbuild) + GitHub Pages (Actions) deploy.
+v1.3.x — Oynanır. **5v5 takım deathmatch** (round sistemi: 20 kill), AK-47 + AWP, eklemli bot rig'i.
+HUD: radar, skor tablosu (Tab), dinamik nişangah, reload barı, hasar yönü, ölüm ekranı + spawn koruması.
+Ayarlar (hassasiyet/ses/zorluk, localStorage) + müttefik takip komutu (F) + ses cilası (ayak/vız/tink).
+Mobil dokunmatik + tam ekran (pixelRatio 1.5 + 1024 gölge). iOS-güvenli IIFE build + Pages deploy.
 
 ## 🏗️ Mimari (BUNU BOZMA — iOS Safari beyaz-ekran riski)
 - **Build:** `src/main.js` (+ three) → esbuild **IIFE / klasik script** → `dist/game-[hash].js`.
