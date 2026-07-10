@@ -2,6 +2,10 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.4.4
+- **Mobil titreşim:** telefonda isabet 15ms, kill 45ms, hasar alma 25ms haptik geri bildirim
+  (navigator.vibrate destekleyen cihazlarda; iOS Safari desteklemez, Android'de çalışır).
+
 ## v1.4.3
 - **Mermi izleri (decal):** duvara/kasaya isabet eden mermiler 10 sn kalan koyu delik izi bırakır
   (8. sn'den itibaren solar; en fazla 40 iz — eskisi silinir; z-fight yok: polygonOffset).

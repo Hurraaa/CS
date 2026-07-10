@@ -759,7 +759,10 @@ function fireOnce() {
     curKey === 'awp' ? { color: 0xcfe4ff, life: 0.16, opacity: 0.95 } : { life: 0.07 });
 }
 
+const vibrate = (ms) => { if (isTouch && navigator.vibrate) try { navigator.vibrate(ms); } catch (e) {} };
+
 function showHitmarker(kill, head) {
+  vibrate(kill ? 45 : 15);   // haptic hit confirm on phones
   hitmarkerEl.classList.toggle('kill', kill);
   hitmarkerEl.classList.toggle('head', !!head && !kill);
   hitmarkerEl.style.opacity = '1';
@@ -960,6 +963,7 @@ function damagePlayer(dmg, fromPos, attacker) {
   if (time < (player.protectUntil || 0)) return;   // brief spawn protection
   player.hp -= dmg;
   camShake = Math.min(1, camShake + 0.55);
+  vibrate(25);
   dmgflash.style.boxShadow = 'inset 0 0 160px 50px rgba(180,0,0,.55)';
   clearTimeout(dmgflash._t); dmgflash._t = setTimeout(() => dmgflash.style.boxShadow = 'inset 0 0 160px 40px rgba(180,0,0,0)', 120);
   // directional hurt arc: bearing of the attacker relative to the view (0 = dead ahead)
