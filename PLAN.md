@@ -22,9 +22,9 @@
 - ~~**Antrenman poligonu**~~ ✅ v1.4.13
 
 ## Sonra (fikirler)
-- [ ] Üçüncü silah (tabanca/bıçak) — silah sistemi hazır, WEAPONS'a ekle.
-- [ ] Basit pathfinding (botlar köşelerden gelsin).
-- [ ] Skor kaydı (localStorage high-score).
+- ~~Üçüncü + dördüncü silah (Deagle, Bıçak)~~ ✅ v1.5.0–1
+- ~~A* pathfinding (nav-grid)~~ ✅ v1.5.2
+- ~~Rekor kaydı (localStorage)~~ ✅ v1.5.3
 - [ ] Toon/cel-shaded görsel kimlik (rehber §2) — opsiyonel stil yükseltmesi.
 
 ## Biten

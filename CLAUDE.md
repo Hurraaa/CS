@@ -11,11 +11,11 @@ Yalnız **kalıcı kural + sabit mimari + dosya haritası + DOKUNMA listesi**. C
 Derin dersler: `docs/CLAUDE_THREEJS_MOBIL_OYUN_REHBERI.md` (gerekince aç).
 
 ## 🎯 Güncel durum
-v1.3.x — Oynanır. **5v5 takım deathmatch** (round sistemi: 20 kill), AK-47 + AWP, eklemli bot rig'i.
-HUD: radar, skor tablosu (Tab), dinamik nişangah, reload barı, hasar yönü, ölüm ekranı + spawn koruması.
-Ayarlar (hassasiyet/ses/zorluk, localStorage) + müttefik takip komutu (F) + ses cilası (ayak/vız/tink).
-Mobil dokunmatik + tam ekran (pixelRatio 1.5 + 1024 gölge). iOS-güvenli IIFE build + Pages deploy.
-
+v1.5.x — Oynanır. **5v5 round'lu takım DM** + tam oyun-hissi paketi (vuruş/silah/kamera/ses juice,
+kovan/decal/ragdoll/hit-stop/seri/MVP/ambiyans/antrenman). **4 silah:** AK/AWP/Deagle/Bıçak (1-4, Q).
+Botlarda A* pathfinding (nav-grid). Rekorlar localStorage'da. HUD: radar, Tab skor tablosu, dinamik
+nişangah, hasar yönü, ölüm ekranı + spawn koruması. Ayarlar: hassasiyet/ses/zorluk. Mobil dokunmatik +
+tam ekran + titreşim. iOS-güvenli IIFE build + Pages deploy.
 ## 🏗️ Mimari (BUNU BOZMA — iOS Safari beyaz-ekran riski)
 - **Build:** `src/main.js` (+ three) → esbuild **IIFE / klasik script** → `dist/game-[hash].js`.
 - `index.html` bir **şablon**: `__GAME_JS__` (hash'li script yolu) + `__BUILD__` (sürüm) placeholder'ları
@@ -35,9 +35,11 @@ CI (`.github/workflows/pages.yml`): `main`e push → build + bootgate + Pages de
   - kurulum: `renderer`/`scene`/`camera`, `canvasTex`, ışıklar, `addBox` (harita+collider)
   - oyuncu: `respawnPlayer`, `update` (ana döngü: hareket/fizik/bot AI/efekt)
   - fizik: `collideAxis`, `groundHeight`, `botCollide` (AABB slide + step + yerçekimi)
-  - silah: `WEAPONS`/`ammoState`/`curKey`, `fireOnce` (silaha göre hasar/spread/recoil), `switchWeapon`,
+  - silah (4): `WEAPONS` (ak/awp/deagle/knife: melee+range), `ammoState`/`curKey`/`prevKey`, `fireOnce`
+    (melee dalı: kısa raycast), `switchWeapon`/`WEAPON_CYCLE`,
     `setAim` (scope=AWP overlay / ADS=AK zoom), `startReload`/`finishReload`, `awpModel`/`akModel`/`updateViewmodel`
   - recoil: `recPitch`/`recYaw` sprey birikimi (update'te bakışa katmanlı, auto-recover); `firing` tetik durumu
+  - nav: `NAV` grid, `findPath` (A*), `steerTo` (waypoint takibi), `navLineFree`
   - botlar (5v5): `TEAM` (renk+isim), `makeBot`/`limb` (rig: kalça/omuz pivot, `torsoG` aim-pitch, elde
     tüfek), `spawnBot` (takım bölgesi), `enemiesOf`/`losClear`/`eyeOf` (hedef seçimi ~5Hz `nextThink`),
     `botShootAt` (oyuncu VEYA bot hedef), `damageBot`/`killBot` (killer kredisi, devrilme animasyonu

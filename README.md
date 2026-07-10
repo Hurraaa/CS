@@ -21,7 +21,8 @@ Sağ tık ile AWP scope:
 | **Fare** | Bak / nişan al |
 | **Sol Tık** | Ateş (basılı tut = sprey / AWP tek atış) |
 | **Sağ Tık** | Nişan / scope (basılı tut) |
-| **1 / 2 / Q** | Silah değiştir (AK-47 ↔ AWP) |
+| **1 / 2 / 3 / 4** | Silah: AK-47 / AWP / Deagle / Bıçak |
+| **Q** | Önceki silaha hızlı geçiş |
 | **R** | Şarjör değiştir |
 | **F** | Müttefik komutu: takip et / serbest |
 | **Tab** | Skor tablosu (basılı tut) |
@@ -50,13 +51,14 @@ Telefonda otomatik olarak dokunmatik kontroller ve tam ekran devreye girer:
 
 ## ⚙️ Özellikler
 
-- **İki silah:** **AK-47** (tam otomatik, sprey recoil, 30/90) ana silah + **AWP** (bolt-action, scope zoom,
-  tek atış yüksek hasar) yedek. `1`/`2`/`Q` veya mobil buton ile değiştir; her şarjör bağımsız.
+- **Dört silah:** **AK-47** (tam otomatik, sprey) · **AWP** (bolt-action, scope) · **Deagle** (güçlü
+  tabanca) · **Bıçak** (2 kesişte kill, +%18 hız). 1-4 tuşları veya mobil buton; Q önceki silaha döner;
+  her şarjör bağımsız.
 - **Ateş & recoil:** tam-otomatik sprey (tetik basılı), silaha göre hasar/yayılım, sprey recoil (tırmanır +
   geri gelir), namlu alevi, hitmarker
 - **5v5 takım savaşı:** sen + 4 müttefik (mavi) vs 5 düşman (kırmızı); botlar birbiriyle de savaşır,
   takım skorları HUD'da, dost ateşi kapalı
-- **Bot AI + rig:** en yakın görünür düşmanı seçme (LOS raycast), yaklaşma/strafe, eklemli gövde (elde
+- **Bot AI + rig:** A* pathfinding ile engellerin etrafından rota, en yakın görünür düşmanı seçme (LOS raycast), yaklaşma/strafe, eklemli gövde (elde
   tüfek, hedefe nişan pozu, yürüme salınımı, devrilerek ölme), isimli can barları (Şahin, Kobra…)
 - **Hangar harita:** konteynerler, kasa yığınları, rampalar, siperler — uzun snipe hatları + saklanma
 - **CS hissi:** prosedürel dokular, gölgeli ışıklandırma, tavan kirişlerinden ışık huzmeleri
