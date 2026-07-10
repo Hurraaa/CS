@@ -241,7 +241,7 @@ function playClick() {
 }
 // soft footstep thud (alternating pitch)
 let stepFlip = false;
-function playStep(run) {
+function playStep(run, vol) {
   if (!audioCtx || !settings.sound) return;
   const t = audioCtx.currentTime, dur = 0.07;
   const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * dur, audioCtx.sampleRate);
@@ -249,7 +249,7 @@ function playStep(run) {
   for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3);
   const src = audioCtx.createBufferSource(); src.buffer = buf;
   const f = audioCtx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = (stepFlip = !stepFlip) ? 420 : 360;
-  const g = audioCtx.createGain(); g.gain.value = run ? 0.11 : 0.07;
+  const g = audioCtx.createGain(); g.gain.value = vol ?? (run ? 0.11 : 0.07);
   src.connect(f); f.connect(g); g.connect(audioCtx.destination); src.start(t);
 }
 // near-miss bullet whiz (quick noise sweep past the ear)
@@ -1467,10 +1467,17 @@ function update(dt) {
     }
   }
 
-  // apply transforms + rig animation
+  // apply transforms + rig animation (+ audible nearby footsteps)
   for (const bot of bots) {
     if (!bot.alive && !bot.dying) continue;
     bot.group.position.copy(bot.pos);
+    if (bot.alive && bot.moveAmt > 0.5) {
+      const dP = bot.pos.distanceTo(player.pos);
+      if (dP < 14 && time >= (bot.nextStepT || 0)) {
+        bot.nextStepT = time + 0.42;
+        playStep(false, 0.08 * (1 - dP / 14));
+      }
+    }
     if (!bot.dying) {
       bot.group.rotation.y = bot.yaw;
       // torso aims up/down at the target; a hit adds a short flinch jerk on top

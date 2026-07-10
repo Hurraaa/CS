@@ -2,6 +2,10 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.4.8
+- **Bot ayak sesleri:** 14 m içindeki hareket hâlindeki botların adımları duyulur (mesafeyle kısılır)
+  — düşmanın köşeden yaklaştığını duymak artık mümkün (CS taktik derinliği).
+
 ## v1.4.7
 - **Round MVP:** round bitiş banner'ında o round'da en çok kill alan oyuncunun adı (⭐ MVP: … ),
   oyuncu dahil; round başına kill sayaçları reset'te sıfırlanır.
