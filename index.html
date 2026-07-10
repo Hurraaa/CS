@@ -96,6 +96,12 @@
   #scoreboard tr.me td:first-child { color: #3dff8b; }
   #scorebar { pointer-events: auto; cursor: pointer; }
 
+  /* Floating damage numbers */
+  .dmgnum { position: absolute; transform: translate(-50%,-50%); font-size: 17px; font-weight: 800; color: #ffffff; text-shadow: 0 1px 3px #000, 0 0 8px rgba(255,255,255,.25); animation: dmgFloat .72s ease-out forwards; pointer-events: none; font-family: Arial, sans-serif; }
+  .dmgnum.head { color: #ffd94d; font-size: 20px; }
+  .dmgnum.kill { color: #ff5c4d; font-size: 23px; }
+  @keyframes dmgFloat { 0% { opacity: 0; margin-top: 4px; } 12% { opacity: 1; } 100% { opacity: 0; margin-top: -34px; } }
+
   /* Death overlay */
   #deathOverlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; background: radial-gradient(circle at center, rgba(60,0,0,.35), rgba(15,0,0,.72)); opacity: 0; pointer-events: none; transition: opacity .3s; }
   #deathOverlay.show { opacity: 1; }

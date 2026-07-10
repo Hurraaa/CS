@@ -265,6 +265,18 @@ function playWhiz() {
   const g = audioCtx.createGain(); g.gain.setValueAtTime(0.09, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
   src.connect(f); f.connect(g); g.connect(audioCtx.destination); src.start(t);
 }
+// meaty flesh-hit thwack for confirmed body shots (pitch varies per hit)
+function playFleshHit() {
+  if (!audioCtx || !settings.sound) return;
+  const t = audioCtx.currentTime, dur = 0.09;
+  const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * dur, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2.2);
+  const src = audioCtx.createBufferSource(); src.buffer = buf;
+  const f = audioCtx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 550 + Math.random() * 250;
+  const g = audioCtx.createGain(); g.gain.setValueAtTime(0.22, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  src.connect(f); f.connect(g); g.connect(audioCtx.destination); src.start(t);
+}
 // bright metallic 'tink' on headshot hits
 function playTink() {
   if (!audioCtx || !settings.sound) return;
@@ -731,7 +743,7 @@ function fireOnce() {
         const head = h.object.userData.part === 'head';
         damageBot(bot, head ? w.dmgHead : w.dmgBody, head, 'player');
         showHitmarker(bot.hp <= 0, head);
-        if (head) playTink();
+        if (head) playTink(); else playFleshHit();
       }
     } else {
       spawnImpact(h.point, h.face ? h.face.normal : null);
@@ -785,12 +797,28 @@ function spawnImpact(point, normal) {
 }
 function spawnBlood(point) {
   const geo = new THREE.BufferGeometry();
-  const n = 14, arr = new Float32Array(n * 3), vel = [];
-  for (let i = 0; i < n; i++) { arr[i*3]=point.x; arr[i*3+1]=point.y; arr[i*3+2]=point.z; vel.push(new THREE.Vector3((Math.random()-.5)*5,(Math.random())*5,(Math.random()-.5)*5)); }
+  const n = 22, arr = new Float32Array(n * 3), vel = [];
+  for (let i = 0; i < n; i++) { arr[i*3]=point.x; arr[i*3+1]=point.y; arr[i*3+2]=point.z; vel.push(new THREE.Vector3((Math.random()-.5)*6,(Math.random())*5.5,(Math.random()-.5)*6)); }
   geo.setAttribute('position', new THREE.BufferAttribute(arr, 3));
-  const mat = new THREE.PointsMaterial({ color: 0xaa1010, size: 0.16, transparent: true });
+  const mat = new THREE.PointsMaterial({ color: Math.random() < 0.5 ? 0xaa1010 : 0x7d0b0b, size: 0.19, transparent: true });
   const pts = new THREE.Points(geo, mat); scene.add(pts);
-  effects.push({ obj: pts, mat, geo, vel, life: 0.5, max: 0.5, type: 'particles' });
+  effects.push({ obj: pts, mat, geo, vel, life: 0.55, max: 0.55, type: 'particles' });
+}
+
+// ---------- Floating damage numbers (screen-space, player hits only) ----------
+const dmgNumHolder = document.getElementById('hurtdir').parentElement; // #hud
+function spawnDamageNumber(worldPos, dmg, head, kill) {
+  const v = worldPos.clone().project(camera);
+  if (v.z > 1) return;                                   // behind the camera
+  const x = (v.x * 0.5 + 0.5) * window.innerWidth;
+  const y = (-v.y * 0.5 + 0.5) * window.innerHeight;
+  const d = document.createElement('div');
+  d.className = 'dmgnum' + (kill ? ' kill' : head ? ' head' : '');
+  d.textContent = Math.round(dmg);
+  d.style.left = (x + (Math.random() - 0.5) * 26) + 'px';
+  d.style.top = (y - 8) + 'px';
+  dmgNumHolder.appendChild(d);
+  setTimeout(() => d.remove(), 750);
 }
 
 // ---------- Bot combat ----------
@@ -798,7 +826,10 @@ function spawnBlood(point) {
 function damageBot(bot, dmg, head, killer) {
   if (!bot.alive) return;
   bot.hp -= dmg;
-  spawnBlood((head ? bot.head : bot.torso).getWorldPosition(new THREE.Vector3()));
+  bot.flinchT = time;                                    // rig jerks for ~0.2s
+  const hitPos = (head ? bot.head : bot.torso).getWorldPosition(new THREE.Vector3());
+  spawnBlood(hitPos);
+  if (killer === 'player') spawnDamageNumber(hitPos, dmg, head, bot.hp <= 0);
   if (bot.hp <= 0) { killBot(bot, killer, head); }
   else updateBotHealthbar(bot);
 }
@@ -1349,8 +1380,13 @@ function update(dt) {
     bot.group.position.copy(bot.pos);
     if (!bot.dying) {
       bot.group.rotation.y = bot.yaw;
-      // torso aims up/down at the target; recoils could go here later
+      // torso aims up/down at the target; a hit adds a short flinch jerk on top
+      const flinch = Math.max(0, 1 - (time - (bot.flinchT ?? -9)) / 0.2);
       bot.torsoG.rotation.x += (-bot.aimPitch - bot.torsoG.rotation.x) * Math.min(1, dt * 10);
+      if (flinch > 0) {
+        bot.torsoG.rotation.x -= flinch * 0.22;
+        bot.torsoG.rotation.z = Math.sin(time * 55) * flinch * 0.1;
+      } else bot.torsoG.rotation.z = 0;
       // walk cycle scaled by how much the bot is actually moving
       const swing = Math.sin(time * 9 + bot.walkPhase) * 0.55 * bot.moveAmt;
       bot.legs[0].rotation.x = swing; bot.legs[1].rotation.x = -swing;

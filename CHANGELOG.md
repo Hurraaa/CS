@@ -2,6 +2,11 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.4.0
+- **Vuruş hissi paketi:** gövde isabetinde etli 'thwack' sesi (headshot 'tink' zaten vardı); vurulan
+  bot ~0.2 sn irkiliyor (gövde sarsılması); isabet noktasında yukarı süzülüp kaybolan **hasar sayıları**
+  (gövde beyaz / kafa sarı / öldürücü kırmızı-büyük); kan efekti yoğunlaştı (22 parçacık, iki ton).
+
 ## v1.3.11
 - **Mobil performans:** telefonda pixelRatio 1.5 ile sınırlandı, gölge haritası 2048→1024
   (dolgu maliyeti ciddi düşer, görsel fark minimal). README/CLAUDE.md/PLAN.md güncellendi.
