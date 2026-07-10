@@ -252,6 +252,19 @@ function playClick() {
   o.type = 'square'; o.frequency.value = 900; g.gain.setValueAtTime(0.12, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.05);
   o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t + 0.05);
 }
+// ---------- Dynamic ambience: low drone that swells with combat intensity ----------
+let ambient = null, combatHeat = 0;
+function ensureAmbient() {
+  if (ambient || !audioCtx) return;
+  const g = audioCtx.createGain(); g.gain.value = 0.0001;
+  const f = audioCtx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 240;
+  const o1 = audioCtx.createOscillator(); o1.type = 'sawtooth'; o1.frequency.value = 54;
+  const o2 = audioCtx.createOscillator(); o2.type = 'sawtooth'; o2.frequency.value = 54.6; // slow beat between the two
+  o1.connect(f); o2.connect(f); f.connect(g); g.connect(audioCtx.destination);
+  o1.start(); o2.start();
+  ambient = { g };
+}
+
 // soft footstep thud (alternating pitch)
 let stepFlip = false;
 function playStep(run, vol) {
@@ -984,6 +997,7 @@ function botShootAt(bot, target) {
 const dmgflash = document.getElementById('dmgflash');
 function damagePlayer(dmg, fromPos, attacker) {
   if (!player.alive) return;
+  if (practiceMode) return;                        // invulnerable on the range
   if (time < (player.protectUntil || 0)) return;   // brief spawn protection
   player.hp -= dmg;
   camShake = Math.min(1, camShake + 0.55);
@@ -1083,7 +1097,7 @@ function updateScore() {
   el('scoreCT').textContent = teamScore.ct;
   el('scoreT').textContent = teamScore.t;
   el('kd').textContent = stats.kills + ' / ' + stats.deaths;
-  if (!roundOver) {
+  if (!roundOver && !practiceMode) {
     if (teamScore.ct >= ROUND_LIMIT) startRoundEnd('ct');
     else if (teamScore.t >= ROUND_LIMIT) startRoundEnd('t');
   }
@@ -1116,6 +1130,7 @@ function playStreakJingle(n) {
 
 // ---------- Ally squad command (F / mobile button): follow the player or roam free ----------
 let allyMode = 'free';
+let practiceMode = false;   // warm-up range: bots stand still, player invulnerable, rounds off
 // formation slots around the player, one per allied bot
 const FOLLOW_OFFSETS = [[-3, -2], [3, -2], [-1.6, 3], [1.6, 3]];
 function toggleAllyMode() {
@@ -1231,7 +1246,9 @@ const menu = el('menu'), hud = el('hud');
 el('loading').style.display = 'none';
 function enterPlayUI() { menu.classList.add('hidden'); hud.classList.remove('hidden'); document.body.classList.add('playing'); }
 function exitPlayUI() { menu.classList.remove('hidden'); hud.classList.add('hidden'); document.body.classList.remove('playing'); setAim(false); }
-function startGame() {
+function startGame(practice = false) {
+  practiceMode = practice === true;
+  if (practiceMode) showToast('🎯 Antrenman modu — Esc ile çık');
   ensureAudio(); if (audioCtx.state === 'suspended') audioCtx.resume();
   ensureAmbient();
   if (isTouch) {
@@ -1244,7 +1261,8 @@ function startGame() {
     controls.lock();
   }
 }
-el('playBtn').addEventListener('click', startGame);
+el('playBtn').addEventListener('click', () => startGame(false));
+el('practiceBtn').addEventListener('click', () => startGame(true));
 controls.addEventListener('lock', enterPlayUI);
 controls.addEventListener('unlock', exitPlayUI);
 
@@ -1407,6 +1425,8 @@ function update(dt) {
       continue;
     }
 
+    // practice range: bots are living targets — no AI, no movement, no shooting
+    if (practiceMode) { bot.state = 'patrol'; bot.enemy = null; bot.moveAmt = 0; bot.aimPitch = 0; continue; }
     // Think at ~5Hz: pick nearest visible enemy (bots + player for T side)
     if (time >= bot.nextThink) {
       bot.nextThink = time + 0.18 + Math.random() * 0.1;

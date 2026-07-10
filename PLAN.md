@@ -8,18 +8,18 @@
 
 ## Oyun hissi backlog'u (benzer FPS'lerden araştırma — game feel/juice)
 > Kaynaklar: game-feel/juice tasarım yazıları + CS/Valorant hit-feedback analizleri. Sıra ≈ etki/maliyet.
-- [ ] **Ölüm ragdoll'u**: devrilme yerine uzuvların gevşeyip savrulması (yarı-ragdoll: uzuv rotasyonlarına rastgele açısal hız).
-- [ ] **Mermi kovanı fırlatma**: her atışta sağa küçük parlak kovan parçacığı + yere 'tink' sesi.
-- [ ] **Duvar izleri (decal)**: mermi deliği izi 5-10 sn kalsın (şu an sadece anlık parçacık var).
-- [ ] **Kill anında mikro slow-mo / hit-stop** (~40ms) — FPS'te riskli, önce tek başına A/B dene.
-- [ ] **Öldürme serisi**: double kill / triple kill duyurusu + artan perde jingle.
-- [ ] **Round sonu MVP**: en çok kill alan oyuncunun adı banner altında.
-- [ ] **Ayak sesi varyasyonu**: bot ayak sesleri (yakın düşman adımları duyulsun — taktik derinlik).
-- [ ] **Silah sesi katmanlama**: mesafeye göre yakın 'crack' + uzak 'echo' katmanı.
-- [ ] **Vinyet + hafif chromatic aberration** hasar anında (CSS ile ucuz).
-- [ ] **Titreşim (mobil)**: isabette navigator.vibrate(20), kill'de 40ms.
-- [ ] **Dinamik müzik/ambiyans**: çatışma yoğunluğuna göre alçak dron katmanı.
-- [ ] **Isınma atış poligonu**: menüden 'antrenman' — hareketsiz hedefler, çıkış yok.
+- ~~**Ölüm ragdoll'u**~~ ✅ v1.4.5
+- ~~**Mermi kovanı fırlatma**~~ ✅ v1.4.2
+- ~~**Duvar izleri (decal)**~~ ✅ v1.4.3
+- ~~**Kill hit-stop (~40ms)**~~ ✅ v1.4.11
+- ~~**Öldürme serisi duyuruları**~~ ✅ v1.4.6
+- ~~**Round sonu MVP**~~ ✅ v1.4.7
+- ~~**Bot ayak sesleri**~~ ✅ v1.4.8
+- ~~**Silah sesi katmanlama (eko kuyruğu)**~~ ✅ v1.4.9
+- ~~**Chromatic aberration hasar flaşı**~~ ✅ v1.4.10
+- ~~**Mobil titreşim**~~ ✅ v1.4.4
+- ~~**Dinamik ambiyans dronu**~~ ✅ v1.4.12
+- ~~**Antrenman poligonu**~~ ✅ v1.4.13
 
 ## Sonra (fikirler)
 - [ ] Üçüncü silah (tabanca/bıçak) — silah sistemi hazır, WEAPONS'a ekle.

@@ -172,6 +172,7 @@
   .card .tag { font-size: 12px; letter-spacing: 4px; opacity: .55; margin-bottom: 20px; }
   .card .play { display: inline-block; margin: 8px 0 18px; padding: 13px 40px; font-size: 17px; font-weight: 700; letter-spacing: 2px; color: #06110a; background: #3dff8b; border-radius: 8px; cursor: pointer; pointer-events: auto; border: none; transition: transform .08s, filter .08s; }
   .card .play:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .card .play.alt { background: transparent; color: #3dff8b; border: 1px solid rgba(61,255,139,.5); font-size: 14px; padding: 10px 26px; margin-left: 10px; }
   .keys { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; font-size: 13px; text-align: left; margin-top: 6px; opacity: .82; }
   .keys b { color: #3dff8b; font-family: monospace; font-weight: 700; }
   #menu .hint { font-size: 11px; opacity: .4; margin-top: 16px; letter-spacing: 1px; }
@@ -288,6 +289,7 @@
     <h1><span class="awp">AWP</span> HANGAR</h1>
     <div class="tag">5v5 TAKIM DEATHMATCH · CS TARZI</div>
     <button class="play" id="playBtn">OYNA ▸</button>
+    <button class="play alt" id="practiceBtn">🎯 ANTRENMAN</button>
     <div class="keys" id="keysDesktop">
       <b>W A S D</b><span>Hareket</span>
       <b>Fare</b><span>Bak</span>

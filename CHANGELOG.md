@@ -2,6 +2,10 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.4.13
+- **Antrenman poligonu:** menüde 🎯 ANTRENMAN — botlar sabit hedef olur (AI/ateş yok), oyuncu
+  ölümsüz, round sistemi kapalı. Isınma için ideal; Esc ile menüye dön.
+
 ## v1.4.12
 - **Dinamik ambiyans:** iki detune testereli osilatörden alçak bir dron; çatışma yoğunlaştıkça
   (yakın zamandaki atış sayısına göre) hafifçe kabarır, sessizlikte ~6 sn'de söner. Ses kapalıyken sıfır.
