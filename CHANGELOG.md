@@ -2,6 +2,11 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.5.2
+- **Pathfinding (A*):** 2 m hücreli nav-grid + köşe-kesmesiz A*; botlar konteyner/kasa kümelerinin
+  etrafından gerçek rotayla dolanır (düz hat açıksa direkt yürür). Devriye + uzak-yaklaşma bu rotayı
+  kullanır; yol 2.5 sn'de bir veya hedef 3 m kayınca tazelenir, waypoint'ler düzleştirilir.
+
 ## v1.5.1
 - **Bıçak:** dördüncü slot (tuş **4**) — 2.4 m menzil, 55 hasar (2 kesişte kill), basılı tutunca seri
   sallama, kesik 'whoosh' + duvara 'clank'; bıçakla **%18 hız bonusu** (klasik CS). HUD'da — / —,

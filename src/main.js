@@ -196,6 +196,90 @@ function ramp(x, z, rot) {
 ramp(-20, -14, false);
 ramp(22, 16, true);
 
+// ---------- Nav grid + A* (bots route around containers instead of hugging them) ----------
+const NAV = { cell: 2, half: MAP.hw };
+NAV.n = Math.floor((NAV.half * 2) / NAV.cell);
+NAV.blocked = new Uint8Array(NAV.n * NAV.n);
+{
+  const m = 0.55;   // bot radius margin
+  for (let gz = 0; gz < NAV.n; gz++) for (let gx = 0; gx < NAV.n; gx++) {
+    const wx = -NAV.half + (gx + 0.5) * NAV.cell, wz = -NAV.half + (gz + 0.5) * NAV.cell;
+    for (const c of colliders) {
+      const b = c.box;
+      if (b.max.y < 1.2) continue;   // low enough to step onto
+      if (wx > b.min.x - m && wx < b.max.x + m && wz > b.min.z - m && wz < b.max.z + m) { NAV.blocked[gz * NAV.n + gx] = 1; break; }
+    }
+  }
+}
+const navAt = (gx, gz) => (gx < 0 || gz < 0 || gx >= NAV.n || gz >= NAV.n) ? 1 : NAV.blocked[gz * NAV.n + gx];
+const toCell = (v) => Math.max(0, Math.min(NAV.n - 1, Math.floor((v + NAV.half) / NAV.cell)));
+const toWorldC = (g) => -NAV.half + (g + 0.5) * NAV.cell;
+
+function navLineFree(ax, az, bx, bz) {   // Bresenham over grid cells
+  let dx = Math.abs(bx - ax), dz = Math.abs(bz - az), sx = ax < bx ? 1 : -1, sz = az < bz ? 1 : -1, err = dx - dz;
+  for (;;) {
+    if (navAt(ax, az)) return false;
+    if (ax === bx && az === bz) return true;
+    const e2 = 2 * err;
+    if (e2 > -dz) { err -= dz; ax += sx; }
+    if (e2 < dx) { err += dx; az += sz; }
+  }
+}
+
+function findPath(fromX, fromZ, toX, toZ) {
+  const sx = toCell(fromX), sz = toCell(fromZ), tx = toCell(toX), tz = toCell(toZ);
+  if (navAt(tx, tz) || (sx === tx && sz === tz)) return null;
+  if (navLineFree(sx, sz, tx, tz)) return null;          // straight walk is fine
+  const key = (x, z) => x * 1024 + z;
+  const open = [[0, sx, sz]], came = new Map(), g = new Map([[key(sx, sz), 0]]);
+  const h = (x, z) => Math.hypot(x - tx, z - tz);
+  let found = false, guard = 0;
+  while (open.length && guard++ < 3000) {
+    let bi = 0; for (let i = 1; i < open.length; i++) if (open[i][0] < open[bi][0]) bi = i;
+    const [, cx, cz] = open.splice(bi, 1)[0];
+    if (cx === tx && cz === tz) { found = true; break; }
+    for (const [ox, oz, cost] of [[1,0,1],[-1,0,1],[0,1,1],[0,-1,1],[1,1,1.42],[1,-1,1.42],[-1,1,1.42],[-1,-1,1.42]]) {
+      const nx = cx + ox, nz = cz + oz;
+      if (navAt(nx, nz)) continue;
+      if (cost > 1 && (navAt(cx + ox, cz) || navAt(cx, cz + oz))) continue;   // no corner cutting
+      const ng = g.get(key(cx, cz)) + cost;
+      if (ng < (g.get(key(nx, nz)) ?? Infinity)) {
+        g.set(key(nx, nz), ng); came.set(key(nx, nz), key(cx, cz));
+        open.push([ng + h(nx, nz), nx, nz]);
+      }
+    }
+  }
+  if (!found) return null;
+  const cells = []; let cur = key(tx, tz);
+  while (cur !== undefined && cur !== key(sx, sz)) { cells.push([Math.floor(cur / 1024), cur % 1024]); cur = came.get(cur); }
+  cells.reverse();
+  // smooth: keep only waypoints where the straight grid-line to the NEXT one breaks
+  const path = []; let ax = sx, az = sz;
+  for (let i = 0; i < cells.length; i++) {
+    if (i === cells.length - 1 || !navLineFree(ax, az, cells[i + 1][0], cells[i + 1][1])) {
+      path.push(new THREE.Vector3(toWorldC(cells[i][0]), 0, toWorldC(cells[i][1])));
+      ax = cells[i][0]; az = cells[i][1];
+    }
+  }
+  return path.length ? path : null;
+}
+
+// steering helper: returns a horizontal unit direction toward dest, routing via A* when blocked
+function steerTo(bot, dest) {
+  const stale = !bot.path || !bot.pathGoal || bot.pathGoal.distanceTo(dest) > 3 || time > (bot.pathAge ?? -9) + 2.5;
+  if (stale) {
+    bot.path = findPath(bot.pos.x, bot.pos.z, dest.x, dest.z);
+    bot.pathGoal = dest.clone(); bot.pathAge = time; bot.pathIdx = 0;
+  }
+  let wp = dest;
+  if (bot.path && bot.pathIdx < bot.path.length) {
+    wp = bot.path[bot.pathIdx];
+    if (Math.hypot(wp.x - bot.pos.x, wp.z - bot.pos.z) < 1.2) { bot.pathIdx++; wp = bot.path[bot.pathIdx] || dest; }
+  }
+  const d = new THREE.Vector3(wp.x - bot.pos.x, 0, wp.z - bot.pos.z);
+  return d.lengthSq() > 0.0001 ? d.normalize() : d.set(0, 0, 0);
+}
+
 // ---------- Settings (persisted) ----------
 const settings = {
   sens: Math.max(0.3, Math.min(2, parseFloat(localStorage.getItem('awp.sens')) || 1)),
@@ -1555,7 +1639,7 @@ function update(dt) {
       const strafe = Math.sin(time * 1.5 + bot.walkPhase);
       const dir = flat.normalize();
       const side = new THREE.Vector3(-dir.z, 0, dir.x);
-      if (distT > 30) move.add(dir);
+      if (distT > 30) move.add(steerTo(bot, new THREE.Vector3(tPos.x, 0, tPos.z)));
       else if (distT < 10) move.sub(dir);
       move.add(side.multiplyScalar(strafe * 0.7));
       // shoot only with a live LOS at trigger time
@@ -1577,7 +1661,10 @@ function update(dt) {
       }
       const toT = bot.target.clone().sub(bot.pos); toT.y = 0;
       if (toT.length() < 1.5) { if (!(bot.team === 'ct' && allyMode === 'follow')) pickPatrol(bot); }
-      else { bot.yaw = Math.atan2(toT.x, toT.z); move.add(toT.normalize()); }
+      else {
+        const dir = steerTo(bot, bot.target);
+        if (dir.lengthSq() > 0) { bot.yaw = Math.atan2(dir.x, dir.z); move.add(dir); }
+      }
     }
 
     // move with simple collision (slide against boxes)
@@ -1728,6 +1815,7 @@ window.__forceScore = (ct, t) => { teamScore.ct = ct; teamScore.t = t; updateSco
 window.__hurt = (dmg) => damagePlayer(dmg, new THREE.Vector3(0, 1.5, -10), bots.find(b => b.team === 't'));
 window.__roundInfo = () => ({ roundOver, rounds: el('rounds').textContent, ct: teamScore.ct, t: teamScore.t });
 window.__teleport = (x, z, yw, pt) => { player.pos.set(x, 0, z); yaw = yw || 0; pitch = pt || 0; camera.rotation.set(pitch, yaw, 0); };
+window.__path = (a,b,c,d) => { const p = findPath(a,b,c,d); return p ? p.map(v=>[+v.x.toFixed(1),+v.z.toFixed(1)]) : null; };
 window.__botInfo = () => bots.map(b => ({ team: b.team, name: b.name, alive: b.alive, x: +b.pos.x.toFixed(1), z: +b.pos.z.toFixed(1) }));
 window.__setScope = setAim;
 window.__yawProbe = () => yaw;
