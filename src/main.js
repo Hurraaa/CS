@@ -892,7 +892,7 @@ function killBot(bot, killer, headshot) {
   ];
   bot.respawnAt = time + 3.2;
   bot.deaths++;
-  if (killer === 'player') { stats.kills++; teamScore.ct++; }
+  if (killer === 'player') { stats.kills++; teamScore.ct++; registerStreakKill(); }
   else if (killer && killer.team) { killer.kills++; teamScore[killer.team]++; }
   updateScore();
   addKillFeed(killer === 'player' ? 'Sen' : (killer ? killer.name : '?'), bot.name,
@@ -1064,6 +1064,32 @@ function updateScore() {
     else if (teamScore.t >= ROUND_LIMIT) startRoundEnd('t');
   }
 }
+// ---------- Kill streaks (kills within a 4s rolling window) ----------
+let killTimes = [];
+const STREAK_TEXT = { 2: 'DOUBLE KILL', 3: 'TRIPLE KILL', 4: 'QUAD KILL' };
+function registerStreakKill() {
+  killTimes.push(time);
+  killTimes = killTimes.filter(t => time - t < 4);
+  const n = killTimes.length;
+  if (n < 2) return;
+  const s = el('streak');
+  s.textContent = STREAK_TEXT[n] || 'RAMPAGE!';
+  s.classList.remove('pop'); void s.offsetWidth;   // restart the CSS animation
+  s.classList.add('pop');
+  playStreakJingle(Math.min(n, 5));
+}
+function playStreakJingle(n) {
+  if (!audioCtx || !settings.sound) return;
+  const t = audioCtx.currentTime;
+  for (let i = 0; i < n; i++) {
+    const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+    o.type = 'triangle'; o.frequency.value = 620 * Math.pow(1.22, i);
+    g.gain.setValueAtTime(0.0001, t + i * 0.08); g.gain.exponentialRampToValueAtTime(0.13, t + i * 0.08 + 0.02);
+    g.gain.exponentialRampToValueAtTime(0.001, t + i * 0.08 + 0.14);
+    o.connect(g); g.connect(audioCtx.destination); o.start(t + i * 0.08); o.stop(t + i * 0.08 + 0.15);
+  }
+}
+
 // ---------- Ally squad command (F / mobile button): follow the player or roam free ----------
 let allyMode = 'free';
 // formation slots around the player, one per allied bot

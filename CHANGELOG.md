@@ -2,6 +2,14 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.4.6
+- **Öldürme serisi:** 4 sn içinde üst üste kill → ekranda DOUBLE/TRIPLE/QUAD KILL / RAMPAGE! duyurusu
+  (pop animasyonlu) + seri uzunluğuna göre yükselen perdeli jingle.
+
+## v1.4.5
+- **Yarı-ragdoll ölüm:** botlar devrilirken kollar/bacaklar/gövde rastgele açısal hızla savrulur ve
+  yere inerken yatışır; respawn'da uzuv duruşları sıfırlanır.
+
 ## v1.4.4
 - **Mobil titreşim:** telefonda isabet 15ms, kill 45ms, hasar alma 25ms haptik geri bildirim
   (navigator.vibrate destekleyen cihazlarda; iOS Safari desteklemez, Android'de çalışır).
@@ -9,10 +17,6 @@
 ## v1.4.3
 - **Mermi izleri (decal):** duvara/kasaya isabet eden mermiler 10 sn kalan koyu delik izi bırakır
   (8. sn'den itibaren solar; en fazla 40 iz — eskisi silinir; z-fight yok: polygonOffset).
-
-## v1.4.5
-- **Yarı-ragdoll ölüm:** botlar devrilirken kollar/bacaklar/gövde rastgele açısal hızla savrulur ve
-  yere inerken yatışır; respawn'da uzuv duruşları sıfırlanır.
 
 ## v1.4.2
 - **Kovan fırlatma:** her atışta sağa pirinç kovan fırlar, yerde bir kez sekip 'tink' sesi çıkarır
