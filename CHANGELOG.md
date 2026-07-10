@@ -2,6 +2,10 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.4.12
+- **Dinamik ambiyans:** iki detune testereli osilatörden alçak bir dron; çatışma yoğunlaştıkça
+  (yakın zamandaki atış sayısına göre) hafifçe kabarır, sessizlikte ~6 sn'de söner. Ses kapalıyken sıfır.
+
 ## v1.4.11
 - **Kill hit-stop:** sen öldürünce dünya ~40 ms donar (render sürer, simülasyon durur) — vuruşun
   'oturduğu' hissi. Çok kısa tutuldu; rahatsız ederse tek satırla kapatılabilir.

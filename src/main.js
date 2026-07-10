@@ -216,6 +216,7 @@ let audioCtx = null;
 function ensureAudio() { if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
 function playShot(big = true, vol = 0.5) {
   if (!audioCtx || !settings.sound) return;
+  combatHeat = Math.min(1, combatHeat + 0.07);
   const t = audioCtx.currentTime;
   // noise burst
   const dur = big ? 0.28 : 0.12;
@@ -1232,6 +1233,7 @@ function enterPlayUI() { menu.classList.add('hidden'); hud.classList.remove('hid
 function exitPlayUI() { menu.classList.remove('hidden'); hud.classList.add('hidden'); document.body.classList.remove('playing'); setAim(false); }
 function startGame() {
   ensureAudio(); if (audioCtx.state === 'suspended') audioCtx.resume();
+  ensureAmbient();
   if (isTouch) {
     // Mobile: no pointer lock — go fullscreen, try landscape, run via mobileActive
     mobileActive = true; enterPlayUI();
@@ -1338,6 +1340,13 @@ function update(dt) {
 
   // live-refresh the scoreboard while it's open
   if (sbVisible && time >= sbRefreshAt) { renderScoreboard(); sbRefreshAt = time + 0.5; }
+
+  // ambience follows combat heat (cools over ~6s of quiet)
+  combatHeat *= Math.max(0, 1 - dt * 0.18);
+  if (ambient) {
+    const target = settings.sound && isActive() ? 0.005 + combatHeat * 0.028 : 0.0001;
+    ambient.g.gain.value += (target - ambient.g.gain.value) * Math.min(1, dt * 2);
+  }
 
   // footsteps: cadence follows speed; silent when crouch-walking slowly
   {
