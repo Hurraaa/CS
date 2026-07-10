@@ -490,7 +490,10 @@ function spawnBot(bot) {
   } while (tries < 30 && pointBlocked(p));
   bot.pos.copy(p); bot.hp = 100; bot.alive = true; bot.dying = false;
   bot.group.visible = true;
-  bot.group.rotation.set(0, 0, 0); bot.torsoG.rotation.x = 0;
+  bot.group.rotation.set(0, 0, 0); bot.torsoG.rotation.set(0, 0, 0);
+  bot.legs[0].rotation.set(0, 0, 0); bot.legs[1].rotation.set(0, 0, 0);
+  bot.arms[0].rotation.set(-1.15, 0, 0.35); bot.arms[1].rotation.set(-1.25, 0, -0.2);
+  bot.rag = null;
   bot.state = 'patrol'; bot.enemy = null; pickPatrol(bot);
   bot.nextShot = time + 1; bot.nextThink = time + Math.random() * 0.3;
   updateBotHealthbar(bot);
@@ -880,6 +883,13 @@ function damageBot(bot, dmg, head, killer) {
 function killBot(bot, killer, headshot) {
   bot.alive = false; bot.dying = true; bot.deathStart = time;
   bot.fallDir = Math.random() < 0.5 ? 1 : -1;
+  // pseudo-ragdoll: each limb gets a random angular velocity that plays out during the fall
+  const rnd = (a) => (Math.random() * 2 - 1) * a;
+  bot.rag = [
+    [bot.legs[0], rnd(7), rnd(5)], [bot.legs[1], rnd(7), rnd(5)],
+    [bot.arms[0], rnd(9), rnd(7)], [bot.arms[1], rnd(9), rnd(7)],
+    [bot.torsoG, rnd(2.5), rnd(3)],
+  ];
   bot.respawnAt = time + 3.2;
   bot.deaths++;
   if (killer === 'player') { stats.kills++; teamScore.ct++; }
@@ -1324,11 +1334,13 @@ function update(dt) {
 
   // ----- Bots (5v5: both teams think, move, fight each other) -----
   for (const bot of bots) {
-    // death animation: tip over from the feet, then hide until respawn
+    // death animation: tip over from the feet while limbs flail (pseudo-ragdoll)
     if (bot.dying) {
       const p = Math.min(1, (time - bot.deathStart) / 0.45);
       bot.group.rotation.x = bot.fallDir * p * 1.45;
       bot.group.rotation.y = bot.yaw + p * 0.6 * bot.fallDir;
+      const slow = Math.max(0, 1 - p);   // limbs settle as the body lands
+      for (const [m, rx, rz] of bot.rag || []) { m.rotation.x += rx * dt * slow; m.rotation.z += rz * dt * slow; }
       if (time - bot.deathStart > 1.1) { bot.dying = false; bot.group.visible = false; }
       continue;
     }
