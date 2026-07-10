@@ -750,7 +750,9 @@ function fireOnce() {
         if (head) playTink(); else playFleshHit();
       }
     } else {
-      spawnImpact(h.point, h.face ? h.face.normal : null);
+      const n = h.face ? h.face.normal : null;
+      spawnImpact(h.point, n);
+      spawnDecal(h.point, n);          // lasting bullet hole (map geometry only)
     }
   }
   spawnTracer(raycaster.ray.origin, raycaster.ray.direction, hits.length ? hits[0].distance : 200,
@@ -809,6 +811,20 @@ function playShellTink() {
   o.type = 'sine'; o.frequency.value = 3200 + Math.random() * 900;
   g.gain.setValueAtTime(0.045, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
   o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t + 0.06);
+}
+
+// persistent bullet-hole decals (capped; oldest removed first)
+const decals = [];
+const decalGeo = new THREE.CircleGeometry(0.055, 10);
+function spawnDecal(point, normal) {
+  if (!normal) return;
+  const mat = new THREE.MeshBasicMaterial({ color: 0x17181a, transparent: true, opacity: 0.85, polygonOffset: true, polygonOffsetFactor: -2, depthWrite: false });
+  const m = new THREE.Mesh(decalGeo, mat);
+  m.position.copy(point).addScaledVector(normal, 0.012);
+  m.lookAt(point.clone().add(normal));
+  scene.add(m);
+  decals.push({ obj: m, mat, born: time });
+  if (decals.length > 40) { const old = decals.shift(); scene.remove(old.obj); old.mat.dispose(); }
 }
 
 function spawnImpact(point, normal) {
@@ -1453,6 +1469,12 @@ function update(dt) {
       if (!e.noDispose) { e.obj.geometry.dispose(); e.mat.dispose(); }
       effects.splice(i, 1);
     }
+  }
+  // bullet decals fade out after 8s, gone at 10s
+  for (let i = decals.length - 1; i >= 0; i--) {
+    const d = decals[i], age = time - d.born;
+    if (age > 10) { scene.remove(d.obj); d.mat.dispose(); decals.splice(i, 1); }
+    else if (age > 8) d.mat.opacity = 0.85 * (1 - (age - 8) / 2);
   }
 }
 
