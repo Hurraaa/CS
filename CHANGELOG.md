@@ -2,6 +2,11 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.5.1
+- **Bıçak:** dördüncü slot (tuş **4**) — 2.4 m menzil, 55 hasar (2 kesişte kill), basılı tutunca seri
+  sallama, kesik 'whoosh' + duvara 'clank'; bıçakla **%18 hız bonusu** (klasik CS). HUD'da — / —,
+  reload yok; kovan/tracer çıkmaz. Eğik bıçak viewmodel'i + sallama animasyonu.
+
 ## v1.5.0
 - **Desert Eagle:** üçüncü silah — 7/35 mermi, tek atış 53 gövde / 212 kafa hasarı, 0.28 sn atış aralığı.
   Tuş: **3**; **Q** artık CS gibi bir önceki silaha hızlı geçiş; mobil buton cephanelikte sıradaki silaha

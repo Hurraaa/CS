@@ -1,6 +1,6 @@
 {
   "name": "awp-hangar",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "private": true,
   "description": "AWP Hangar — Three.js CS-style deathmatch vs bots (iOS-safe classic-script build)",
   "type": "module",

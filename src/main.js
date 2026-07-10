@@ -291,6 +291,20 @@ function playWhiz() {
   const g = audioCtx.createGain(); g.gain.setValueAtTime(0.09, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
   src.connect(f); f.connect(g); g.connect(audioCtx.destination); src.start(t);
 }
+// knife slash whoosh
+function playWhoosh() {
+  if (!audioCtx || !settings.sound) return;
+  const t = audioCtx.currentTime, dur = 0.14;
+  const buf = audioCtx.createBuffer(1, audioCtx.sampleRate * dur, audioCtx.sampleRate);
+  const d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1);
+  const src = audioCtx.createBufferSource(); src.buffer = buf;
+  const f = audioCtx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 2.5;
+  f.frequency.setValueAtTime(900, t); f.frequency.exponentialRampToValueAtTime(2400, t + dur);
+  const g = audioCtx.createGain(); g.gain.setValueAtTime(0.07, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  src.connect(f); f.connect(g); g.connect(audioCtx.destination); src.start(t);
+}
+
 // meaty flesh-hit thwack for confirmed body shots (pitch varies per hit)
 function playFleshHit() {
   if (!audioCtx || !settings.sound) return;
@@ -373,12 +387,20 @@ const WEAPONS = {
     recoilUp: 0.028, recoilSide: 0.01, recover: 5.5, kick: 0.09,
     spreadHip: 0.02, spreadAds: 0.007, sndBig: true, sndVol: 0.4,
   },
+  knife: {
+    key: 'knife', name: 'BIÇAK', auto: true, melee: true, range: 2.4,
+    magMax: 0, reserveMax: 0, dmgBody: 55, dmgHead: 90,
+    fireDelay: 0.45, reloadTime: 0, scope: false, adsFov: BASE_FOV, walkWhileAiming: false,
+    recoilUp: 0, recoilSide: 0, recover: 8, kick: 0.04,
+    spreadHip: 0, spreadAds: 0, sndBig: false, sndVol: 0.2,
+  },
 };
 // Per-weapon ammo/reload runtime, kept independently so switching preserves each mag.
 const ammoState = {
   ak: { mag: 30, reserve: 90, lastShot: -99, reloading: false, reloadEnd: 0 },
   awp: { mag: 10, reserve: 30, lastShot: -99, reloading: false, reloadEnd: 0 },
   deagle: { mag: 7, reserve: 35, lastShot: -99, reloading: false, reloadEnd: 0 },
+  knife: { mag: 0, reserve: 0, lastShot: -99, reloading: false, reloadEnd: 0 },
 };
 let curKey = 'ak';                     // start on the rifle — spray first
 let prevKey = 'awp';                   // Q quick-switches to the previous weapon
@@ -447,12 +469,29 @@ const deagleModel = new THREE.Group();
 deagleModel.visible = false;
 viewGroup.add(deagleModel);
 
+// Knife model (blade angled forward)
+const knifeModel = new THREE.Group();
+{
+  const steel = new THREE.MeshStandardMaterial({ color: 0xb9c2c9, roughness: 0.25, metalness: 0.9 });
+  const grip = new THREE.MeshStandardMaterial({ color: 0x241a12, roughness: 0.8 });
+  const handle = new THREE.Mesh(new THREE.BoxGeometry(0.045, 0.05, 0.16), grip); handle.position.set(0, -0.06, -0.08);
+  const guard = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.02, 0.03), steel); guard.position.set(0, -0.05, -0.17);
+  const blade = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.045, 0.3), steel); blade.position.set(0, -0.04, -0.34);
+  const tip = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.03, 0.08), steel); tip.position.set(0, -0.03, -0.51); tip.rotation.x = 0.25;
+  knifeModel.add(handle, guard, blade, tip);
+  knifeModel.rotation.z = -0.35; knifeModel.position.set(0.02, -0.02, 0.06);
+}
+knifeModel.visible = false;
+viewGroup.add(knifeModel);
+let knifeSwing = 0;   // 1 at the start of a slash, decays; drives the swing pose
+
 viewGroup.traverse(m => { if (m.isMesh) m.castShadow = false; });
 
 function updateViewmodel() {
   awpModel.visible = curKey === 'awp';
   akModel.visible = curKey === 'ak';
   deagleModel.visible = curKey === 'deagle';
+  knifeModel.visible = curKey === 'knife';
 }
 updateViewmodel();
 
@@ -618,6 +657,7 @@ addEventListener('keydown', e => {
   if (e.code === 'Digit1') switchWeapon('ak');
   if (e.code === 'Digit2') switchWeapon('awp');
   if (e.code === 'Digit3') switchWeapon('deagle');
+  if (e.code === 'Digit4') switchWeapon('knife');
   if (e.code === 'KeyQ') switchWeapon(prevKey);
   if (e.code === 'KeyF') toggleAllyMode();
   if (['ControlLeft','ControlRight'].includes(e.code)) e.preventDefault();
@@ -741,7 +781,7 @@ bindBtn('btnScope', (b) => { setAim(!scoped); b.classList.toggle('on', scoped); 
 bindBtn('btnReload', () => startReload());
 bindBtn('btnJump', () => { wantJump = true; });
 bindBtn('btnCrouch', (b) => { mCrouch = !mCrouch; b.classList.toggle('on', mCrouch); });
-const WEAPON_CYCLE = ['ak', 'awp', 'deagle'];
+const WEAPON_CYCLE = ['ak', 'awp', 'deagle', 'knife'];
 const nextWeaponKey = () => WEAPON_CYCLE[(WEAPON_CYCLE.indexOf(curKey) + 1) % WEAPON_CYCLE.length];
 bindBtn('btnSwap', () => switchWeapon(nextWeaponKey()));
 bindBtn('btnSquad', () => toggleAllyMode());
@@ -781,6 +821,29 @@ function fireOnce() {
   const w = curW(), a = curAmmo();
   if (a.reloading) return;
   if (time - a.lastShot < w.fireDelay) return;
+  if (w.melee) {
+    a.lastShot = time;
+    knifeSwing = 1;
+    ensureAudio(); playWhoosh();
+    raycaster.setFromCamera({ x: 0, y: 0 }, camera);
+    raycaster.far = w.range;
+    const hits = raycaster.intersectObjects([...botHitMeshes(), ...colliderMeshes], false);
+    raycaster.far = Infinity;
+    if (hits.length) {
+      const h = hits[0];
+      if (h.object.userData.bot && h.object.userData.bot.team !== 'ct') {
+        const bot = h.object.userData.bot;
+        const head = h.object.userData.part === 'head';
+        damageBot(bot, head ? w.dmgHead : w.dmgBody, head, 'player');
+        showHitmarker(bot.hp <= 0, head);
+        playFleshHit();
+      } else if (!h.object.userData.bot) {
+        spawnImpact(h.point, h.face ? h.face.normal : null);
+        playShellTink();   // blade clank on walls
+      }
+    }
+    return;
+  }
   if (a.mag <= 0) { startReload(); return; }
   a.lastShot = time; a.mag--; updateAmmo();
   ensureAudio(); playShot(w.sndBig, w.sndVol);
@@ -789,7 +852,7 @@ function fireOnce() {
   recPitch += w.recoilUp;
   recYaw += (Math.random() * 2 - 1) * w.recoilSide;
   if (!scoped) fovKick += curKey === 'awp' ? 2.4 : 0.9;
-  if (!(scoped && curW().scope)) spawnShell();   // viewmodel hidden in full scope — no shell
+  if (!(scoped && curW().scope)) spawnShell();   // viewmodel hidden in full scope — no shell (melee returns earlier)
 
   // bullet spread: tighter when aiming
   const spread = scoped ? w.spreadAds : w.spreadHip;
@@ -831,6 +894,7 @@ function showHitmarker(kill, head) {
 
 function startReload() {
   const w = curW(), a = curAmmo();
+  if (w.melee) return;
   if (a.reloading || a.mag >= w.magMax || a.reserve <= 0) return;
   a.reloading = true; a.reloadEnd = time + w.reloadTime;
   document.getElementById('ammo').classList.add('reloading');
@@ -1119,8 +1183,9 @@ function updateHealth() {
 }
 function updateAmmo() {
   const a = curAmmo();
-  el('mag').textContent = a.mag;
-  el('reserve').textContent = '∞';   // infinite reserve
+  const melee = curW().melee;
+  el('mag').textContent = melee ? '—' : a.mag;
+  el('reserve').textContent = melee ? '—' : '∞';   // infinite reserve
 }
 function updateScore() {
   el('scoreCT').textContent = teamScore.ct;
@@ -1322,6 +1387,7 @@ function update(dt) {
     if (moving) wish.normalize();
 
     let speed = player.crouch ? CROUCH_SPEED : (keys['ShiftLeft'] || keys['ShiftRight']) ? WALK_SPEED : RUN_SPEED;
+    if (curKey === 'knife') speed *= 1.18;   // classic CS knife speed
     if (joyActive) speed *= Math.min(1, joyMag);   // analog throttle from joystick push
     if (scoped && curW().walkWhileAiming) speed = Math.min(speed, WALK_SPEED);
 
@@ -1379,8 +1445,10 @@ function update(dt) {
   viewGroup.position.z += (-0.42 - viewGroup.position.z) * Math.min(1, dt * 10);
   const bob = player.onGround && (Math.abs(player.vel.x) + Math.abs(player.vel.z)) > 1 ? Math.sin(time * 10) * 0.012 : 0;
   const dip = curAmmo().reloading ? 1 : 0;
+  knifeSwing = Math.max(0, knifeSwing - dt * 5);
+  const swingX = curKey === 'knife' ? Math.sin(knifeSwing * Math.PI) * 0.9 : 0;   // quick arc down and back
   viewGroup.position.y += ((-0.2 - dip * 0.15 + bob) - viewGroup.position.y) * Math.min(1, dt * 9);
-  viewGroup.rotation.x += ((dip * 0.4) - viewGroup.rotation.x) * Math.min(1, dt * 9);
+  viewGroup.rotation.x += ((dip * 0.4 - swingX) - viewGroup.rotation.x) * Math.min(1, dt * (knifeSwing > 0 ? 30 : 9));
 
   // reload finish (per active weapon)
   if (curAmmo().reloading && time >= curAmmo().reloadEnd) finishReload();
