@@ -730,6 +730,7 @@ function fireOnce() {
   recPitch += w.recoilUp;
   recYaw += (Math.random() * 2 - 1) * w.recoilSide;
   if (!scoped) fovKick += curKey === 'awp' ? 2.4 : 0.9;
+  if (!(scoped && curW().scope)) spawnShell();   // viewmodel hidden in full scope — no shell
 
   // bullet spread: tighter when aiming
   const spread = scoped ? w.spreadAds : w.spreadHip;
@@ -791,6 +792,25 @@ function spawnTracer(origin, dir, dist, opts = {}) {
   const life = opts.life ?? 0.08;
   effects.push({ obj: line, mat, life, max: life, type: 'fade' });
 }
+// brass shell ejected to the right of the viewmodel; bounces once with a tink
+const shellGeo = new THREE.BoxGeometry(0.022, 0.022, 0.055);
+const shellMat = new THREE.MeshStandardMaterial({ color: 0xd4a53c, roughness: 0.35, metalness: 0.8 });
+function spawnShell() {
+  const m = new THREE.Mesh(shellGeo, shellMat);
+  m.position.copy(camera.localToWorld(new THREE.Vector3(0.3, -0.1, -0.5)));
+  const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0);
+  const vel = right.multiplyScalar(1.5 + Math.random()).add(new THREE.Vector3(0, 1.6 + Math.random() * 0.8, 0));
+  scene.add(m);
+  effects.push({ obj: m, mat: shellMat, type: 'shell', vel, rot: new THREE.Vector3(6 + Math.random() * 10, Math.random() * 10, 0), life: 1.5, max: 1.5, bounced: false, noDispose: true });
+}
+function playShellTink() {
+  if (!audioCtx || !settings.sound) return;
+  const t = audioCtx.currentTime, o = audioCtx.createOscillator(), g = audioCtx.createGain();
+  o.type = 'sine'; o.frequency.value = 3200 + Math.random() * 900;
+  g.gain.setValueAtTime(0.045, t); g.gain.exponentialRampToValueAtTime(0.001, t + 0.06);
+  o.connect(g); g.connect(audioCtx.destination); o.start(t); o.stop(t + 0.06);
+}
+
 function spawnImpact(point, normal) {
   const geo = new THREE.BufferGeometry();
   const n = 8, arr = new Float32Array(n * 3), vel = [];
@@ -1417,7 +1437,22 @@ function update(dt) {
       e.geo.attributes.position.needsUpdate = true;
       e.mat.opacity = Math.max(0, e.life / e.max);
     }
-    if (e.life <= 0) { scene.remove(e.obj); e.obj.geometry.dispose(); e.mat.dispose(); effects.splice(i, 1); }
+    if (e.type === 'shell') {
+      e.vel.y -= 14 * dt;
+      e.obj.position.addScaledVector(e.vel, dt);
+      e.obj.rotation.x += e.rot.x * dt; e.obj.rotation.y += e.rot.y * dt;
+      const gy = groundHeight(e.obj.position, 0.05) + 0.025;
+      if (e.obj.position.y < gy && e.vel.y < 0) {
+        e.obj.position.y = gy;
+        if (!e.bounced) { e.bounced = true; e.vel.y *= -0.35; e.vel.x *= 0.45; e.vel.z *= 0.45; playShellTink(); }
+        else { e.vel.set(0, 0, 0); e.rot.set(0, 0, 0); }
+      }
+    }
+    if (e.life <= 0) {
+      scene.remove(e.obj);
+      if (!e.noDispose) { e.obj.geometry.dispose(); e.mat.dispose(); }
+      effects.splice(i, 1);
+    }
   }
 }
 

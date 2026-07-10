@@ -2,6 +2,10 @@
 
 > Yeni sürüm notu bu dosyanın **başına** eklenir. (CLAUDE.md'yi şişirme — bu dosya otomatik yüklenmez.)
 
+## v1.4.2
+- **Kovan fırlatma:** her atışta sağa pirinç kovan fırlar, yerde bir kez sekip 'tink' sesi çıkarır
+  (paylaşımlı geometri/materyal — maliyetsiz). Tam scope'tayken (AWP) kovan yok.
+
 ## v1.4.1
 - **Silah & kamera hissi:** her atışta kısa FOV punch (AWP'de sert, AK'da hafif — scope'tayken kapalı);
   hasar alınca kamera kısa süre sarsılır (roll — nişanı bozmaz, hızla söner); reload sırasında silah
